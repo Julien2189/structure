@@ -4,96 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <style>
-        *{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            height: 100%;
-        }
-        body {
-            background-color: rgb(60, 65, 65);
-            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-            min-height: 100vh;
-            color: rgb(134, 79, 79);
-            display: flex;
-            flex-direction: column;
-        }
-        .header{
-            border: 1px solid black;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: row;
-            height: 100px;
-            width: 100%;
-        }
-        .logo {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 50%;
-            
-        }
-
-        a {
-            color: antiquewhite;
-            display: flex;
-            text-align:center;
-            text-decoration: none;
-            
-        }
-       ul {
-            
-             display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin: 10px ;
-            padding: 10px;
-
-        }
-        li{
-            list-style: none;
-            padding: 10px;
-        }
-        .nav {
-             display: flex;
-            flex-direction: row;
-            justify-content: end;
-            align-items: center;
-            
-            width: 50%;
-            padding: 10px;
-        }
-        .titre{
-            background-color: blue;
-            
-        }
-        .intro {
-            background-color: aqua;
-            height: 500px;
-        }
-        .main {
-            display: grid;
-            grid-template-columns: 1fr 3fr 1fr;
-            height: 100%;
-            flex: 1;
-            min-height: 500px;
-           
-        }
-        .contenu {
-            background-color: blanchedalmond;
-        }
-        .principal {
-            background-color: blueviolet;
-        }
-        .aside {
-            background-color: chocolate;
-        }
-    </style>
+   
+    
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header class="header">
@@ -111,27 +24,188 @@
         </div>
     </header>
      <section class="titre">
-            <h1>Titre</h1>
-            <div class="intro"><p>test</p></div>
+            <h1>Apprendre TensorFlow avec Python et JavaScript</h1>
+          <div class="intro" id="intro">
+    <p>
+        Bienvenue sur mon site dédié à l’apprentissage de TensorFlow.
+        J’y partage mes découvertes, mes essais, mes explications
+        et mes projets autour du machine learning.
+    </p>
+
+    <p>
+        Vous y trouverez les bases de TensorFlow, la manipulation de modèles
+        en Python, ainsi qu’une découverte de TensorFlow.js pour intégrer
+        l’intelligence artificielle directement dans le web.
+    </p>
+
+    <p>
+        Ce site me permet de regrouper mes cours, mes tests et mes projets
+        afin de progresser pas à pas en machine learning
+        et en développement web.
+    </p>
+</div>
         </section>
-    <main class="main">
-       
-        <section class="contenu">
+      <main class="main">
+        <section>
             <div></div>
             <p>grid-template-columns</p>
         </section>
-        <section class="principal">
-            <div>
-                <h2>test</h2>
-            </div>
-        </section>
-        <aside class="aside">
-            <div>
+
+        <section class="contenu">
+            <section class="principal">
+                <div class="contenu-principal">
+                    <h2>Découvrir TensorFlow</h2>
+
+        <p>
+            TensorFlow est une bibliothèque puissante dédiée au machine learning
+            et au deep learning. Elle permet de créer, entraîner et utiliser des
+            modèles capables d’analyser des données, de reconnaître des formes,
+            de faire des prédictions ou encore de classifier des informations.
+        </p>
+
+        <p>
+            Dans ce site, je souhaite explorer TensorFlow sous deux angles :
+            avec Python, pour comprendre les bases du machine learning et
+            construire des modèles plus classiques, et avec JavaScript grâce
+            à TensorFlow.js, pour intégrer l’intelligence artificielle
+            directement dans le navigateur.
+        </p>
+
+        <h3>Pourquoi apprendre TensorFlow ?</h3>
+
+        <p>
+            Apprendre TensorFlow permet de mieux comprendre comment fonctionnent
+            les modèles d’intelligence artificielle. C’est aussi une excellente
+            manière de relier la programmation, les mathématiques et l’analyse
+            de données dans des projets concrets.
+        </p>
+
+        <p>
+            Avec Python, il devient possible de manipuler facilement des données,
+            d’entraîner des modèles et de tester différentes approches.
+            Avec JavaScript, on peut ensuite imaginer des applications web
+            interactives capables d’utiliser ces modèles directement côté client.
+        </p>
+
+        <h3>Ce que je vais explorer</h3>
+
+        <p>
+            Au fil des pages, je vais regrouper mes essais, mes notes et mes projets
+            autour de plusieurs thèmes : la découverte des tensors, la création
+            de modèles simples, la prédiction de valeurs, l’entraînement d’un réseau
+            de neurones et l’intégration de TensorFlow.js dans des interfaces web.
+        </p>
+
+        <p>
+            L’objectif n’est pas seulement d’apprendre la théorie, mais aussi
+            de pratiquer pas à pas à travers des exemples concrets.
+            Ce site devient donc un espace d’apprentissage, d’expérimentation
+            et de progression autour du machine learning.
+        </p>
+
+        <h3>Un apprentissage progressif</h3>
+
+        <p>
+            Je souhaite avancer étape par étape, en commençant par les notions
+            essentielles, puis en construisant des projets de plus en plus complets.
+            Chaque nouvelle découverte me permettra de mieux comprendre le lien
+            entre l’intelligence artificielle, le développement web et la programmation.
+        </p>
+
+        <p>
+            À travers ce parcours, je vais pouvoir comparer les approches Python
+            et JavaScript, tester mes propres idées et développer des applications
+            mêlant interface, logique et prédiction.
+        </p>
+    </div>
+    
+</section>
+
+<section class="algorithme" id="algorithme">
+    <h2>Explication de l’algorithme</h2>
+
+    <p>
+        Un algorithme est une suite d’instructions logiques permettant de résoudre
+        un problème ou d’effectuer une tâche précise. En intelligence artificielle
+        et en machine learning, l’algorithme sert à analyser des données, repérer
+        des relations entre elles, puis produire un résultat comme une prédiction
+        ou une classification.
+    </p>
+
+    <p>
+        Avec TensorFlow, l’algorithme repose souvent sur un modèle mathématique
+        que l’on entraîne à partir de données. Le but est de permettre au modèle
+        d’apprendre progressivement en ajustant ses paramètres pour améliorer
+        ses résultats.
+    </p>
+
+    <h3>Les grandes étapes</h3>
+
+    <p>
+        La première étape consiste à récupérer des données. Ces données peuvent être
+        des nombres, des textes, des images ou d’autres informations à analyser.
+        Elles servent de base d’apprentissage pour le modèle.
+    </p>
+
+    <p>
+        Ensuite, on construit un modèle. Ce modèle représente la structure de
+        l’algorithme, par exemple un réseau de neurones ou une régression simple.
+        Il reçoit les données en entrée et tente de produire une sortie correcte.
+    </p>
+
+    <p>
+        Puis vient la phase d’entraînement. Pendant cette étape, le modèle compare
+        ses prédictions aux vraies réponses attendues. Il calcule l’erreur, puis
+        ajuste ses paramètres pour réduire cette erreur au fil des itérations.
+    </p>
+
+    <p>
+        Enfin, une fois entraîné, le modèle peut être utilisé pour faire des
+        prédictions sur de nouvelles données qu’il n’a jamais vues auparavant.
+    </p>
+
+    <h3>Fonctionnement simplifié</h3>
+
+    <p>
+        On peut résumer le fonctionnement d’un algorithme de machine learning
+        de cette manière :
+    </p>
+
+    <p>
+        données d’entrée → traitement par le modèle → calcul de l’erreur →
+        ajustement des paramètres → amélioration progressive des résultats.
+        </p>
+
+        <h3>Pourquoi c’est important ?</h3>
+
+        <p>
+        Comprendre l’algorithme permet de mieux saisir comment TensorFlow apprend
+        à partir des données. Cela aide aussi à construire des projets plus fiables,
+        à repérer les erreurs et à améliorer les performances d’un modèle.
+        </p>
+
+        <p>
+        Dans mes expérimentations, cette étape est essentielle car elle permet
+        de passer d’un simple script à une vraie logique d’apprentissage
+        automatique capable de produire des résultats utiles.
+        </p>
+    </section>
+</section>
+
+        
+          <aside class="aside">
+            <div class="sommaire">
                 <h3>Sommaire</h3>
+                <ul class="sommaire">
+                    <li><a href="#intro">introduction</a></li>
+                    <li><a href="#algorithme">algorithme</a></li>
+                </ul>
             </div>
-        </aside>    
+        </aside>
     </main>
+
     <aside class="aside-global"></aside>
+    
     <footer>
               <p>© <span id="year"></span> JLQ Développement. Tous droits réservés.</p>
 

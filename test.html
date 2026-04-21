@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apprendre TensorFlow</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: rgba(255, 255, 255, 0.08);
+      --card-strong: rgba(255, 255, 255, 0.12);
+      --text: #e5e7eb;
+      --muted: #cbd5e1;
+      --accent: #60a5fa;
+      --accent-2: #38bdf8;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+      --radius: 22px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 25%),
+        linear-gradient(180deg, #0f172a 0%, #111827 50%, #0b1120 100%);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    a {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 5%;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+    }
+
+    .logo-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      font-weight: 800;
+      box-shadow: var(--shadow);
+    }
+
+    .nav ul {
+      list-style: none;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .nav a {
+      padding: 10px 14px;
+      border-radius: 12px;
+      transition: 0.25s ease;
+      color: var(--muted);
+    }
+
+    .nav a:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+    }
+
+    .titre {
+      min-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 80px 20px 60px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: 0.95rem;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 5vw, 4.4rem);
+      line-height: 1.1;
+      max-width: 920px;
+      margin-bottom: 24px;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      font-size: 1.08rem;
+      color: var(--muted);
+      margin-bottom: 34px;
+    }
+
+    .intro {
+      width: min(100%, 980px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 34px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .intro p {
+      color: #f8fafc;
+      font-size: 1.05rem;
+    }
+
+    .hero-actions {
+      margin-top: 28px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      transition: 0.25s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: white;
+      border: none;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .main {
+      width: min(1280px, 92%);
+      margin: 0 auto;
+      padding: 30px 0 70px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 290px;
+      gap: 24px;
+      flex: 1;
+    }
+
+    .contenu {
+      display: grid;
+      gap: 24px;
+    }
+
+    .bloc {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .bloc h2 {
+      font-size: 1.8rem;
+      margin-bottom: 18px;
+    }
+
+    .bloc h3 {
+      margin-top: 22px;
+      margin-bottom: 10px;
+      color: #ffffff;
+      font-size: 1.2rem;
+    }
+
+    .bloc p {
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .card {
+      background: var(--card-strong);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+    }
+
+    .card h4 {
+      margin-bottom: 10px;
+      font-size: 1.05rem;
+      color: #fff;
+    }
+
+    .card p {
+      margin-bottom: 0;
+      font-size: 0.97rem;
+    }
+
+    .liste {
+      padding-left: 18px;
+      color: var(--muted);
+    }
+
+    .liste li {
+      margin-bottom: 10px;
+    }
+
+    .aside {
+      position: relative;
+    }
+
+    .sommaire {
+      position: sticky;
+      top: 100px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .sommaire h3 {
+      margin-bottom: 16px;
+      font-size: 1.2rem;
+    }
+
+    .sommaire ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .sommaire a {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      transition: 0.25s ease;
+    }
+
+    .sommaire a:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      transform: translateX(4px);
+    }
+
+    footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      background: rgba(2, 6, 23, 0.95);
+      padding: 24px 5%;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .footer-links {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--muted);
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    @media (max-width: 980px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+
+      .aside {
+        order: -1;
+      }
+
+      .sommaire {
+        position: static;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .header {
+        flex-direction: column;
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .nav ul {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .titre {
+        min-height: auto;
+        padding-top: 60px;
+      }
+
+      .intro,
+      .bloc,
+      .sommaire {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <div class="logo-badge">TF</div>
+      <span>TensorFlow Academy</span>
+    </div>
+
+    <div class="nav">
+      <nav>
+        <ul>
+          <li><a href="#intro">Accueil</a></li>
+          <li><a href="#decouvrir">À propos</a></li>
+          <li><a href="#footer">Nous contacter</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="titre">
+    <div class="hero-badge">Machine learning • Python • TensorFlow.js</div>
+    <h1>Apprendre TensorFlow avec Python et JavaScript</h1>
+    <p class="subtitle">
+      Un espace pour découvrir les bases du machine learning, comprendre les tensors,
+      construire des modèles et intégrer l’intelligence artificielle dans le web.
+    </p>
+
+    <div class="intro" id="intro">
+      <p>
+        Bienvenue sur mon site dédié à l’apprentissage de TensorFlow. J’y partage mes découvertes,
+        mes essais, mes explications et mes projets autour du machine learning.
+      </p>
+
+      <p>
+        Vous y trouverez les bases de TensorFlow, la manipulation de modèles en Python,
+        ainsi qu’une découverte de TensorFlow.js pour intégrer l’intelligence artificielle
+        directement dans le navigateur.
+      </p>
+
+      <p>
+        Ce site me permet de regrouper mes cours, mes tests et mes projets afin de progresser
+        pas à pas en machine learning et en développement web.
+      </p>
+    </div>
+
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#decouvrir">Commencer la découverte</a>
+      <a class="btn btn-secondary" href="#algorithme">Voir l’algorithme</a>
+    </div>
+  </section>
+
+  <main class="main">
+    <section class="contenu">
+      <section class="bloc principal" id="decouvrir">
+        <h2>Découvrir TensorFlow</h2>
+
+        <p>
+          TensorFlow est une bibliothèque puissante dédiée au machine learning et au deep learning.
+          Elle permet de créer, d’entraîner et d’utiliser des modèles capables d’analyser des données,
+          de reconnaître des formes, de faire des prédictions ou encore de classifier des informations.
+        </p>
+
+        <p>
+          Dans ce site, je souhaite explorer TensorFlow sous deux angles : avec Python, pour comprendre
+          les bases du machine learning et construire des modèles plus classiques, et avec JavaScript grâce
+          à TensorFlow.js, pour intégrer l’intelligence artificielle directement dans le navigateur.
+        </p>
+
+        <h3>Pourquoi apprendre TensorFlow ?</h3>
+        <p>
+          Apprendre TensorFlow permet de mieux comprendre comment fonctionnent les modèles d’intelligence
+          artificielle. C’est aussi une excellente manière de relier la programmation, les mathématiques
+          et l’analyse de données dans des projets concrets.
+        </p>
+
+        <div class="cards">
+          <article class="card">
+            <h4>Python</h4>
+            <p>Idéal pour manipuler les données, entraîner des modèles et tester rapidement des idées.</p>
+          </article>
+          <article class="card">
+            <h4>TensorFlow.js</h4>
+            <p>Permet d’intégrer des modèles directement dans le navigateur pour créer des interfaces interactives.</p>
+          </article>
+          <article class="card">
+            <h4>Projets concrets</h4>
+            <p>Prédiction, classification, reconnaissance de motifs et expérimentation pas à pas.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="bloc" id="algorithme">
+        <h2>Explication de l’algorithme</h2>
+
+        <p>
+          Un algorithme est une suite d’instructions logiques permettant de résoudre un problème ou
+          d’effectuer une tâche précise. En intelligence artificielle et en machine learning,
+          l’algorithme sert à analyser des données, repérer des relations entre elles,
+          puis produire un résultat comme une prédiction ou une classification.
+        </p>
+
+        <p>
+          Avec TensorFlow, l’algorithme repose souvent sur un modèle mathématique que l’on entraîne
+          à partir de données. Le but est de permettre au modèle d’apprendre progressivement en ajustant
+          ses paramètres pour améliorer ses résultats.
+        </p>
+
+        <h3>Les grandes étapes</h3>
+        <ul class="liste">
+          <li>Récupérer des données d’entrée : nombres, textes, images ou séries temporelles.</li>
+          <li>Construire un modèle : régression, classification ou réseau de neurones.</li>
+          <li>Entraîner le modèle en comparant les prédictions aux résultats attendus.</li>
+          <li>Réduire l’erreur en ajustant les paramètres à chaque itération.</li>
+          <li>Utiliser le modèle sur de nouvelles données pour faire des prédictions.</li>
+        </ul>
+
+        <h3>Fonctionnement simplifié</h3>
+        <p>
+          Données d’entrée → traitement par le modèle → calcul de l’erreur → ajustement des paramètres
+          → amélioration progressive des résultats.
+        </p>
+
+        <h3>Pourquoi c’est important ?</h3>
+        <p>
+          Comprendre l’algorithme permet de mieux saisir comment TensorFlow apprend à partir des données.
+          Cela aide aussi à construire des projets plus fiables, à repérer les erreurs et à améliorer
+          les performances d’un modèle.
+        </p>
+      </section>
+
+      <section class="bloc" id="tensors">
+        <h2>Les tensors</h2>
+        <p>
+          Le tensor est l’élément de base de TensorFlow. On peut le voir comme une structure de données
+          capable de représenter un nombre, un tableau, une matrice ou même un volume plus complexe.
+        </p>
+        <p>
+          Comprendre les tensors est essentiel, car toutes les opérations de TensorFlow reposent dessus.
+          Quand on charge des données, qu’on fait un calcul ou qu’on entraîne un modèle, on manipule des tensors.
+        </p>
+
+        <div class="cards">
+          <article class="card">
+            <h4>Scalaire</h4>
+            <p>Un seul nombre, par exemple une valeur de température ou un prix.</p>
+          </article>
+          <article class="card">
+            <h4>Vecteur</h4>
+            <p>Une liste de valeurs, par exemple plusieurs mesures regroupées dans un tableau.</p>
+          </article>
+          <article class="card">
+            <h4>Matrice</h4>
+            <p>Un tableau à deux dimensions, très utile pour les jeux de données structurés.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="bloc" id="roadmap">
+        <h2>Mon plan d’apprentissage</h2>
+        <p>
+          Pour progresser efficacement, je peux avancer par étapes simples en mélangeant théorie,
+          pratique et petits projets.
+        </p>
+
+        <ul class="liste">
+          <li>Comprendre les bases du machine learning et des tensors.</li>
+          <li>Créer un premier modèle simple avec Python.</li>
+          <li>Tester une régression ou une prédiction de valeurs.</li>
+          <li>Découvrir les réseaux de neurones.</li>
+          <li>Passer ensuite à TensorFlow.js pour intégrer ces concepts dans une page web.</li>
+        </ul>
+      </section>
+    </section>
+
+    <aside class="aside">
+      <div class="sommaire">
+        <h3>Sommaire</h3>
+        <ul>
+          <li><a href="#intro">Introduction</a></li>
+          <li><a href="#decouvrir">Découvrir TensorFlow</a></li>
+          <li><a href="#algorithme">Algorithme</a></li>
+          <li><a href="#tensors">Tensors</a></li>
+          <li><a href="#roadmap">Plan d’apprentissage</a></li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="footer">
+    <p>© <span id="year"></span> JLQ Développement. Tous droits réservés.</p>
+    <div class="footer-links">
+      <a href="#intro">Retour en haut</a>
+      <a href="#decouvrir">Découvrir</a>
+      <a href="#algorithme">Algorithme</a>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
