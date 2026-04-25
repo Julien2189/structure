@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lizzie RH — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A84C;--gold-light:#E8C97A;--gold-dim:rgba(201,168,76,.12);
+  --bg:#070707;--surface:#111111;--surface2:#181818;
+  --border:rgba(201,168,76,.15);--border-focus:rgba(201,168,76,.5);
+  --text:#F0EBE0;--text-muted:#6A6459;--text-dim:#3A3830;
+  --green:#4CC97A;--red:#C94C4C;--r:6px;
+}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Outfit',sans-serif;font-weight:300;
+  display:flex;min-height:100vh;overflow:hidden;
+  cursor:none;
+}
+
+/* ── CURSOR ───────────────────────────────────────────── */
+#cur{position:fixed;width:8px;height:8px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .1s;mix-blend-mode:difference}
+#cur-r{position:fixed;width:32px;height:32px;border-radius:50%;border:1px solid rgba(201,168,76,.5);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left .2s ease,top .2s ease,width .3s,height .3s}
+body:has(button:hover) #cur-r,body:has(a:hover) #cur-r,body:has(input:hover) #cur-r{width:48px;height:48px}
+
+/* ── LAYOUT ──────────────────────────────────────────── */
+.split-left{
+  flex:1;position:relative;
+  background:var(--surface);
+  display:flex;flex-direction:column;
+  padding:3rem;overflow:hidden;
+}
+.split-right{
+  width:520px;min-width:520px;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:3rem;overflow-y:auto;
+  position:relative;
+}
+
+/* ── LEFT PANEL ───────────────────────────────────────── */
+.left-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 50%,rgba(201,168,76,.08),transparent),
+    radial-gradient(ellipse 50% 70% at 80% 20%,rgba(76,122,201,.06),transparent);
+}
+.left-noise{
+  position:absolute;inset:0;opacity:.03;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.left-content{position:relative;z-index:1;display:flex;flex-direction:column;height:100%}
+.left-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem;font-weight:500;color:var(--gold);
+  letter-spacing:.08em;text-decoration:none;
+}
+.left-logo span{color:var(--text);font-weight:300}
+.left-mid{flex:1;display:flex;flex-direction:column;justify-content:center;padding:2rem 0}
+.left-tag{
+  display:inline-flex;align-items:center;gap:.5rem;
+  border:1px solid var(--border);padding:.35rem 1rem;
+  border-radius:50px;font-size:.7rem;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--gold);
+  margin-bottom:2rem;width:fit-content;
+}
+.left-tag::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.left-mid h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.2rem,3.5vw,3.5rem);
+  font-weight:300;line-height:1.1;
+  max-width:500px;
+}
+.left-mid h2 em{font-style:italic;color:var(--gold)}
+.left-mid p{
+  color:var(--text-muted);font-size:.9rem;line-height:1.7;
+  max-width:420px;margin-top:1.2rem;
+}
+.left-stats{
+  display:flex;gap:3rem;margin-top:3rem;
+  padding-top:2rem;border-top:1px solid var(--border);
+}
+.stat-val{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2.2rem;font-weight:300;color:var(--gold);
+}
+.stat-lbl{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-top:.2rem}
+.left-bottom{
+  display:flex;gap:1rem;
+  font-size:.75rem;color:var(--text-dim);
+}
+.left-bottom a{color:var(--text-dim);text-decoration:none;transition:color .2s}
+.left-bottom a:hover{color:var(--gold)}
+.left-bottom span{color:var(--text-dim)}
+
+/* ── RIGHT PANEL ─────────────────────────────────────── */
+.right-inner{width:100%;max-width:420px}
+
+/* Onglets Login / Inscription */
+.auth-tabs{
+  display:flex;gap:0;
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:4px;margin-bottom:2.5rem;
+  background:var(--surface);
+}
+.auth-tab{
+  flex:1;padding:.65rem;text-align:center;
+  font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-muted);border:none;background:transparent;
+  cursor:none;border-radius:4px;transition:all .3s;
+  font-family:'Outfit',sans-serif;
+}
+.auth-tab.active{background:var(--gold);color:var(--bg);font-weight:500}
+
+/* Titre panneau */
+.form-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:2rem;font-weight:300;margin-bottom:.5rem;
+}
+.form-title em{font-style:italic;color:var(--gold)}
+.form-sub{color:var(--text-muted);font-size:.85rem;line-height:1.6;margin-bottom:2rem}
+
+/* Steps inscription */
+.steps-indicator{
+  display:flex;align-items:center;gap:0;
+  margin-bottom:2rem;
+}
+.step-dot{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;font-weight:500;
+  border:1px solid var(--border);color:var(--text-muted);
+  background:transparent;transition:all .4s;flex-shrink:0;
+}
+.step-dot.active{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+.step-dot.done{background:var(--gold);border-color:var(--gold);color:var(--bg)}
+.step-line{flex:1;height:1px;background:var(--border);transition:background .4s}
+.step-line.done{background:var(--gold)}
+
+/* Forms */
+.form-panel{display:none}
+.form-panel.active{display:block;animation:slideIn .35s ease}
+@keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+
+.field{margin-bottom:1.4rem}
+label{
+  display:block;font-size:.72rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--text-muted);margin-bottom:.6rem;
+}
+input[type=text],input[type=email],input[type=password],select{
+  width:100%;padding:.85rem 1.1rem;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  color:var(--text);font-family:'Outfit',sans-serif;font-size:.9rem;
+  font-weight:300;outline:none;
+  transition:border-color .3s,box-shadow .3s;
+  appearance:none;cursor:none;
+}
+input:focus,select:focus{
+  border-color:var(--border-focus);
+  box-shadow:0 0 0 3px rgba(201,168,76,.08);
+}
+input::placeholder{color:var(--text-dim)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+
+/* Password toggle */
+.field-pass{position:relative}
+.field-pass input{padding-right:3rem}
+.pass-toggle{
+  position:absolute;right:1rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:none;
+  color:var(--text-muted);font-size:1rem;padding:.2rem;
+  transition:color .2s;
+}
+.pass-toggle:hover{color:var(--gold)}
+
+/* Checkbox */
+.check-row{display:flex;align-items:flex-start;gap:.8rem;margin-bottom:1.4rem}
+.check-row input[type=checkbox]{
+  width:16px;height:16px;min-width:16px;min-height:16px;
+  margin-top:2px;accent-color:var(--gold);cursor:none;
+}
+.check-row label{
+  font-size:.82rem;letter-spacing:0;text-transform:none;
+  color:var(--text-muted);cursor:none;
+}
+.check-row label a{color:var(--gold);text-decoration:none}
+
+/* Force indicator */
+.force-bar{height:3px;border-radius:2px;background:var(--surface2);margin-top:.5rem;overflow:hidden}
+.force-fill{height:100%;width:0;transition:width .4s,background .4s;border-radius:2px}
+.force-label{font-size:.7rem;color:var(--text-muted);margin-top:.3rem;text-align:right}
+
+/* Bouton principal */
+.btn-submit{
+  width:100%;padding:1rem;
+  background:var(--gold);color:var(--bg);
+  border:none;border-radius:var(--r);
+  font-family:'Outfit',sans-serif;font-size:.88rem;
+  font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  cursor:none;transition:all .3s;
+  position:relative;overflow:hidden;
+}
+.btn-submit:hover{background:var(--gold-light);transform:translateY(-1px);box-shadow:0 10px 30px rgba(201,168,76,.25)}
+.btn-submit:disabled{opacity:.5;transform:none;box-shadow:none}
+.btn-submit .loader{
+  display:none;width:18px;height:18px;border-radius:50%;
+  border:2px solid rgba(0,0,0,.3);border-top-color:#000;
+  animation:spin .7s linear infinite;margin:0 auto;
+}
+.btn-submit.loading .loader{display:block}
+.btn-submit.loading .btn-text{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.btn-outline{
+  width:100%;padding:.9rem;margin-top:.8rem;
+  background:transparent;color:var(--text-muted);
+  border:1px solid var(--border);border-radius:var(--r);
+  font-family:'Outfit',sans-serif;font-size:.85rem;
+  letter-spacing:.12em;text-transform:uppercase;
+  cursor:none;transition:all .3s;
+}
+.btn-outline:hover{border-color:var(--border-focus);color:var(--text)}
+
+/* Alert */
+.alert{
+  padding:.9rem 1.1rem;border-radius:var(--r);
+  font-size:.85rem;margin-bottom:1.2rem;
+  display:none;align-items:center;gap:.7rem;
+}
+.alert.error{background:rgba(201,76,76,.1);border:1px solid rgba(201,76,76,.25);color:#E88A8A;display:flex}
+.alert.success{background:rgba(76,201,122,.1);border:1px solid rgba(76,201,122,.25);color:#8AE8A8;display:flex}
+
+/* Plan badge (step 3) */
+.plan-cards{display:flex;flex-direction:column;gap:.8rem;margin-bottom:1.4rem}
+.plan-card{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.2rem;border:1px solid var(--border);
+  border-radius:var(--r);cursor:none;transition:all .3s;
+  background:var(--surface);
+}
+.plan-card:hover,.plan-card.selected{border-color:var(--gold);background:var(--gold-dim)}
+.plan-card input[type=radio]{display:none}
+.plan-name{font-size:.9rem;font-weight:400}
+.plan-price{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.3rem;font-weight:300;color:var(--gold);
+}
+.plan-price small{font-family:'Outfit',sans-serif;font-size:.72rem;color:var(--text-muted)}
+.plan-tag{font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-top:.1rem}
+
+/* Divider "ou" */
+.or-divider{
+  display:flex;align-items:center;gap:1rem;
+  color:var(--text-dim);font-size:.75rem;
+  margin:1.5rem 0;
+}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Lien bas */
+.form-switch{text-align:center;margin-top:1.5rem;font-size:.82rem;color:var(--text-muted)}
+.form-switch a{color:var(--gold);text-decoration:none;cursor:none}
+
+/* Mot de passe oublié */
+.forgot{
+  text-align:right;margin-bottom:1.2rem;
+  font-size:.78rem;
+}
+.forgot a{color:var(--text-muted);text-decoration:none;transition:color .2s}
+.forgot a:hover{color:var(--gold)}
+
+/* Trial badge */
+.trial-badge{
+  display:flex;align-items:center;gap:.6rem;justify-content:center;
+  padding:.6rem;border:1px solid var(--border);border-radius:var(--r);
+  font-size:.75rem;color:var(--text-muted);margin-bottom:1.5rem;
+  background:var(--surface);
+}
+.trial-badge strong{color:var(--gold)}
+
+@media(max-width:900px){
+  .split-left{display:none}
+  .split-right{width:100%;min-width:0;padding:2rem 1.5rem}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-r"></div>
+
+<!-- ── GAUCHE ────────────────────────────────────────── -->
+<div class="split-left">
+  <div class="left-bg"></div>
+  <div class="left-noise"></div>
+  <div class="left-content">
+
+    <a href="lizzie-landing.html" class="left-logo">Lizzie<span>RH</span></a>
+
+    <div class="left-mid">
+      <div class="left-tag">Plateforme RH intelligente</div>
+      <h2>L'IA qui écoute<br/>vos équipes <em>en silence</em></h2>
+      <p>Détectez le burnout, les conflits et les talents cachés avant qu'il ne soit trop tard. Lizzie analyse, vous décidez.</p>
+
+      <div class="left-stats">
+        <div>
+          <div class="stat-val">94%</div>
+          <div class="stat-lbl">Satisfaction</div>
+        </div>
+        <div>
+          <div class="stat-val">−62%</div>
+          <div class="stat-lbl">Turnover</div>
+        </div>
+        <div>
+          <div class="stat-val">500+</div>
+          <div class="stat-lbl">Entreprises</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="left-bottom">
+      <a href="#">Confidentialité</a><span>·</span>
+      <a href="#">CGU</a><span>·</span>
+      <a href="#">Contact</a><span>·</span>
+      <span>© 2025 Lizzie RH</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── DROITE ─────────────────────────────────────────── -->
+<div class="split-right">
+  <div class="right-inner">
+
+    <!-- Onglets -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchMode('login')">Connexion</button>
+      <button class="auth-tab" onclick="switchMode('register')">Inscription</button>
+    </div>
+
+    <!-- ══ CONNEXION ═══════════════════════════════════ -->
+    <div id="panel-login" class="form-panel active">
+      <h2 class="form-title">Bon retour, <em>bienvenue</em></h2>
+      <p class="form-sub">Connectez-vous à votre espace Lizzie RH.</p>
+
+      <div class="alert error" id="login-error">
+        <span>⚠</span><span id="login-error-msg">Identifiants incorrects.</span>
+      </div>
+
+      <div class="field">
+        <label for="login-email">Adresse email</label>
+        <input type="email" id="login-email" placeholder="vous@entreprise.com" autocomplete="email"/>
+      </div>
+
+      <div class="field">
+        <label for="login-pass">Mot de passe</label>
+        <div class="field-pass">
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password"/>
+          <button class="pass-toggle" onclick="togglePass('login-pass',this)" type="button">👁</button>
+        </div>
+      </div>
+
+      <div class="forgot"><a href="#" onclick="showForgot()">Mot de passe oublié ?</a></div>
+
+      <button class="btn-submit" id="login-btn" onclick="handleLogin()">
+        <span class="btn-text">Se connecter</span>
+        <div class="loader"></div>
+      </button>
+
+      <div class="or-divider">ou</div>
+
+      <button class="btn-outline" onclick="handleSSO()">
+        🔐 &nbsp;Connexion SSO / SAML
+      </button>
+
+      <div class="form-switch">
+        Pas encore de compte ? <a href="#" onclick="switchMode('register')">Créer un compte</a>
+      </div>
+    </div>
+
+    <!-- ══ INSCRIPTION (3 étapes) ═══════════════════════ -->
+    <div id="panel-register" class="form-panel">
+
+      <!-- Indicateur steps -->
+      <div class="steps-indicator" id="steps-ind">
+        <div class="step-dot active" id="sd1">1</div>
+        <div class="step-line" id="sl1"></div>
+        <div class="step-dot" id="sd2">2</div>
+        <div class="step-line" id="sl2"></div>
+        <div class="step-dot" id="sd3">3</div>
+      </div>
+
+      <!-- STEP 1 — Compte -->
+      <div id="reg-step1" class="form-panel active">
+        <h2 class="form-title">Créer <em>votre compte</em></h2>
+        <p class="form-sub">Démarrez votre essai gratuit de 14 jours, sans carte bancaire.</p>
+
+        <div class="alert error" id="s1-error"><span>⚠</span><span id="s1-error-msg"></span></div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="r-fname">Prénom</label>
+            <input type="text" id="r-fname" placeholder="Julien"/>
+          </div>
+          <div class="field">
+            <label for="r-lname">Nom</label>
+            <input type="text" id="r-lname" placeholder="Dupont"/>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="r-email">Email professionnel</label>
+          <input type="email" id="r-email" placeholder="vous@entreprise.com"/>
+        </div>
+
+        <div class="field">
+          <label for="r-pass">Mot de passe</label>
+          <div class="field-pass">
+            <input type="password" id="r-pass" placeholder="Min. 8 caractères" oninput="checkForce(this)"/>
+            <button class="pass-toggle" onclick="togglePass('r-pass',this)" type="button">👁</button>
+          </div>
+          <div class="force-bar"><div class="force-fill" id="force-fill"></div></div>
+          <div class="force-label" id="force-label">Entrez un mot de passe</div>
+        </div>
+
+        <div class="check-row">
+          <input type="checkbox" id="r-cgu"/>
+          <label for="r-cgu">J'accepte les <a href="#">conditions d'utilisation</a> et la <a href="#">politique de confidentialité</a></label>
+        </div>
+
+        <button class="btn-submit" onclick="goStep(2)">
+          <span class="btn-text">Continuer →</span>
+          <div class="loader"></div>
+        </button>
+      </div>
+
+      <!-- STEP 2 — Entreprise -->
+      <div id="reg-step2" class="form-panel">
+        <h2 class="form-title">Votre <em>entreprise</em></h2>
+        <p class="form-sub">Quelques informations pour configurer votre espace Lizzie.</p>
+
+        <div class="field">
+          <label for="r-company">Nom de l'entreprise</label>
+          <input type="text" id="r-company" placeholder="Acme Corp"/>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="r-size">Taille de l'équipe</label>
+            <select id="r-size">
+              <option value="">Sélectionner</option>
+              <option value="1-5">1 – 5</option>
+              <option value="6-20">6 – 20</option>
+              <option value="21-50">21 – 50</option>
+              <option value="51-200">51 – 200</option>
+              <option value="200+">200+</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="r-sector">Secteur</label>
+            <select id="r-sector">
+              <option value="">Sélectionner</option>
+              <option>Tech / SaaS</option>
+              <option>Finance</option>
+              <option>Santé</option>
+              <option>Retail</option>
+              <option>Industrie</option>
+              <option>Autre</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="r-role">Votre rôle</label>
+          <select id="r-role">
+            <option value="">Sélectionner</option>
+            <option>Directeur RH</option>
+            <option>Responsable RH</option>
+            <option>Office Manager</option>
+            <option>CEO / Fondateur</option>
+            <option>Manager</option>
+            <option>Autre</option>
+          </select>
+        </div>
+
+        <div style="display:flex;gap:1rem">
+          <button class="btn-outline" onclick="goStep(1)" style="flex:1;margin-top:0">← Retour</button>
+          <button class="btn-submit" onclick="goStep(3)" style="flex:2">
+            <span class="btn-text">Continuer →</span>
+            <div class="loader"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 3 — Plan -->
+      <div id="reg-step3" class="form-panel">
+        <h2 class="form-title">Choisir <em>votre plan</em></h2>
+        <p class="form-sub">14 jours offerts sur tous les plans. Annulation libre.</p>
+
+        <div class="trial-badge">🎁 <strong>Essai gratuit 14 jours</strong> — aucune carte requise</div>
+
+        <div class="plan-cards" id="plan-cards">
+          <label class="plan-card selected" onclick="selectPlan(this,'STARTER')">
+            <input type="radio" name="plan" value="STARTER" checked/>
+            <div>
+              <div class="plan-name">Starter</div>
+              <div class="plan-tag">Jusqu'à 5 employés</div>
+            </div>
+            <div class="plan-price">29€<small>/mois</small></div>
+          </label>
+          <label class="plan-card" onclick="selectPlan(this,'PRO')">
+            <input type="radio" name="plan" value="PRO"/>
+            <div>
+              <div class="plan-name">Pro ⭐</div>
+              <div class="plan-tag">Jusqu'à 50 employés</div>
+            </div>
+            <div class="plan-price">79€<small>/mois</small></div>
+          </label>
+          <label class="plan-card" onclick="selectPlan(this,'ENTERPRISE')">
+            <input type="radio" name="plan" value="ENTERPRISE"/>
+            <div>
+              <div class="plan-name">Entreprise</div>
+              <div class="plan-tag">Employés illimités</div>
+            </div>
+            <div class="plan-price">199€<small>/mois</small></div>
+          </label>
+        </div>
+
+        <div class="alert error" id="s3-error"><span>⚠</span><span id="s3-error-msg"></span></div>
+        <div class="alert success" id="s3-success"><span>✓</span><span>Compte créé ! Redirection en cours…</span></div>
+
+        <div style="display:flex;gap:1rem">
+          <button class="btn-outline" onclick="goStep(2)" style="flex:1;margin-top:0">← Retour</button>
+          <button class="btn-submit" id="reg-btn" onclick="handleRegister()" style="flex:2">
+            <span class="btn-text">Créer mon compte</span>
+            <div class="loader"></div>
+          </button>
+        </div>
+
+        <div class="form-switch" style="margin-top:1rem">
+          Déjà un compte ? <a href="#" onclick="switchMode('login')">Se connecter</a>
+        </div>
+      </div>
+
+    </div><!-- /panel-register -->
+
+  </div>
+</div>
+
+<script>
+// ── Curseur ───────────────────────────────────────────
+const cur=document.getElementById('cur'),curR=document.getElementById('cur-r');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=mx+'px';cur.style.top=my+'px';
+});
+(function loop(){
+  rx+=(mx-rx)*.14;ry+=(my-ry)*.14;
+  curR.style.left=rx+'px';curR.style.top=ry+'px';
+  requestAnimationFrame(loop);
+})();
+
+// ── Bascule Login / Inscription ────────────────────────
+let mode='login';
+function switchMode(m){
+  mode=m;
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',i===(m==='login'?0:1)));
+  document.getElementById('panel-login').classList.toggle('active',m==='login');
+  document.getElementById('panel-register').classList.toggle('active',m==='register');
+}
+
+// ── Steps inscription ──────────────────────────────────
+let currentStep=1;
+function goStep(n){
+  if(n>currentStep && !validateStep(currentStep)) return;
+  [1,2,3].forEach(i=>{
+    document.getElementById('reg-step'+i).classList.toggle('active',i===n);
+    const dot=document.getElementById('sd'+i);
+    dot.classList.toggle('done',i<n);
+    dot.classList.toggle('active',i===n);
+    if(i<3){document.getElementById('sl'+i).classList.toggle('done',i<n)}
+  });
+  currentStep=n;
+}
+
+function validateStep(s){
+  if(s===1){
+    const fn=document.getElementById('r-fname').value.trim();
+    const ln=document.getElementById('r-lname').value.trim();
+    const em=document.getElementById('r-email').value.trim();
+    const pw=document.getElementById('r-pass').value;
+    const cgu=document.getElementById('r-cgu').checked;
+    const errEl=document.getElementById('s1-error');
+    const errMsg=document.getElementById('s1-error-msg');
+    if(!fn||!ln){errMsg.textContent='Prénom et nom requis.';errEl.style.display='flex';return false}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){errMsg.textContent='Email invalide.';errEl.style.display='flex';return false}
+    if(pw.length<8){errMsg.textContent='Mot de passe : 8 caractères minimum.';errEl.style.display='flex';return false}
+    if(!cgu){errMsg.textContent='Veuillez accepter les CGU.';errEl.style.display='flex';return false}
+    errEl.style.display='none';return true;
+  }
+  if(s===2){
+    const co=document.getElementById('r-company').value.trim();
+    const sz=document.getElementById('r-size').value;
+    if(!co||!sz){return false}
+    return true;
+  }
+  return true;
+}
+
+// ── Sélection plan ─────────────────────────────────────
+let selectedPlan='STARTER';
+function selectPlan(el,plan){
+  document.querySelectorAll('.plan-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPlan=plan;
+}
+
+// ── Force mot de passe ─────────────────────────────────
+function checkForce(input){
+  const v=input.value;
+  let score=0;
+  if(v.length>=8)score++;
+  if(/[A-Z]/.test(v))score++;
+  if(/[0-9]/.test(v))score++;
+  if(/[^A-Za-z0-9]/.test(v))score++;
+  const fill=document.getElementById('force-fill');
+  const label=document.getElementById('force-label');
+  const colors=['#C94C4C','#C9884C','#C9C94C','#4CC97A'];
+  const labels=['Trop faible','Faible','Bon','Excellent'];
+  fill.style.width=(score*25)+'%';
+  fill.style.background=colors[score-1]||'var(--text-dim)';
+  label.textContent=score?labels[score-1]:'Entrez un mot de passe';
+}
+
+// ── Toggle mot de passe ────────────────────────────────
+function togglePass(id,btn){
+  const inp=document.getElementById(id);
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.textContent=show?'🙈':'👁';
+}
+
+// ── Login ──────────────────────────────────────────────
+async function handleLogin(){
+  const btn=document.getElementById('login-btn');
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  const errEl=document.getElementById('login-error');
+
+  if(!email||!pass){
+    document.getElementById('login-error-msg').textContent='Veuillez remplir tous les champs.';
+    errEl.style.display='flex';return;
+  }
+  errEl.style.display='none';
+  btn.classList.add('loading');btn.disabled=true;
+
+  try{
+    const res=await fetch('/api/auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body:JSON.stringify({email,password:pass})
+    });
+    const data=await res.json();
+    if(res.ok){
+      window.location.href='/dashboard';
+    }else{
+      document.getElementById('login-error-msg').textContent=data.error||'Identifiants incorrects.';
+      errEl.style.display='flex';
+    }
+  }catch(e){
+    // Mode démo
+    document.getElementById('login-error-msg').textContent='Serveur indisponible. Mode démo : redirection…';
+    errEl.style.display='flex';
+    setTimeout(()=>window.location.href='lizzie-dashboard.html',1500);
+  }finally{
+    btn.classList.remove('loading');btn.disabled=false;
+  }
+}
+
+// ── Register ───────────────────────────────────────────
+async function handleRegister(){
+  const btn=document.getElementById('reg-btn');
+  const errEl=document.getElementById('s3-error');
+  const okEl=document.getElementById('s3-success');
+
+  btn.classList.add('loading');btn.disabled=true;
+  errEl.style.display='none';
+
+  const payload={
+    firstName:document.getElementById('r-fname').value.trim(),
+    lastName:document.getElementById('r-lname').value.trim(),
+    email:document.getElementById('r-email').value.trim(),
+    password:document.getElementById('r-pass').value,
+    companyName:document.getElementById('r-company').value.trim(),
+    companySize:document.getElementById('r-size').value,
+    sector:document.getElementById('r-sector').value,
+    role:document.getElementById('r-role').value,
+    plan:selectedPlan
+  };
+
+  try{
+    const res=await fetch('/api/auth/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data=await res.json();
+    if(res.ok){
+      okEl.style.display='flex';
+      // Rediriger vers Stripe checkout si plan payant
+      if(data.checkoutUrl) setTimeout(()=>window.location.href=data.checkoutUrl,1200);
+      else setTimeout(()=>window.location.href='/dashboard',1200);
+    }else{
+      document.getElementById('s3-error-msg').textContent=data.error||'Une erreur est survenue.';
+      errEl.style.display='flex';
+    }
+  }catch(e){
+    // Mode démo
+    okEl.style.display='flex';
+    setTimeout(()=>window.location.href='lizzie-dashboard.html',1500);
+  }finally{
+    btn.classList.remove('loading');btn.disabled=false;
+  }
+}
+
+// ── SSO ────────────────────────────────────────────────
+function handleSSO(){
+  alert('SSO disponible sur le plan Entreprise. Contactez notre équipe.');
+}
+
+// ── Mot de passe oublié ────────────────────────────────
+function showForgot(){
+  const email=prompt('Entrez votre adresse email :');
+  if(email&&/\S+@\S+\.\S+/.test(email)){
+    alert('Un lien de réinitialisation a été envoyé à '+email);
+  }
+}
+
+// ── Pré-sélectionner plan via URL (?plan=PRO) ──────────
+const urlPlan=new URLSearchParams(window.location.search).get('plan');
+if(urlPlan&&['STARTER','PRO','ENTERPRISE'].includes(urlPlan)){
+  switchMode('register');
+  document.querySelectorAll('.plan-card').forEach(c=>{
+    const match=c.querySelector('input').value===urlPlan;
+    c.classList.toggle('selected',match);
+    if(match)selectedPlan=urlPlan;
+  });
+}
+</script>
+</body>
+</html>

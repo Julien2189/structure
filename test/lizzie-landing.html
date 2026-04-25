@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lizzie RH — L'IA qui prend soin de vos équipes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET & BASE ──────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9A84C;
+  --gold-light:#E8C97A;
+  --gold-dim:#8A6D2A;
+  --bg:#070707;
+  --bg2:#0D0D0D;
+  --bg3:#111111;
+  --surface:#161616;
+  --surface2:#1C1C1C;
+  --border:rgba(201,168,76,0.15);
+  --border-hover:rgba(201,168,76,0.4);
+  --text:#F0EBE0;
+  --text-muted:#7A7264;
+  --text-dim:#4A4640;
+  --red:#C94C4C;
+  --green:#4CC97A;
+  --r:4px;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Outfit',sans-serif;
+  font-weight:300;
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* ── CUSTOM CURSOR ─────────────────────────────────────── */
+#cursor{position:fixed;width:10px;height:10px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform .1s,opacity .2s;mix-blend-mode:difference}
+#cursor-ring{position:fixed;width:36px;height:36px;border-radius:50%;border:1px solid var(--gold);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:transform .25s ease,width .3s,height .3s,opacity .2s;opacity:.5}
+body:has(a:hover) #cursor-ring,body:has(button:hover) #cursor-ring{width:56px;height:56px;opacity:.9}
+
+/* ── NOISE OVERLAY ─────────────────────────────────────── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:1;opacity:.4;
+}
+
+/* ── NAV ───────────────────────────────────────────────── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:1.5rem 4rem;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid transparent;
+  transition:all .4s;
+  backdrop-filter:blur(0px);
+}
+nav.scrolled{
+  border-bottom-color:var(--border);
+  backdrop-filter:blur(20px);
+  background:rgba(7,7,7,.85);
+  padding:1rem 4rem;
+}
+.nav-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.6rem;font-weight:500;
+  color:var(--gold);
+  letter-spacing:.08em;
+  text-decoration:none;
+}
+.nav-logo span{color:var(--text);font-weight:300}
+.nav-links{display:flex;gap:2.5rem;align-items:center}
+.nav-links a{
+  color:var(--text-muted);font-size:.85rem;letter-spacing:.12em;
+  text-transform:uppercase;text-decoration:none;
+  transition:color .3s;
+}
+.nav-links a:hover{color:var(--gold)}
+.nav-cta{
+  padding:.6rem 1.8rem;
+  border:1px solid var(--gold);
+  color:var(--gold);
+  background:transparent;
+  font-family:'Outfit',sans-serif;
+  font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;
+  cursor:none;border-radius:var(--r);
+  transition:all .3s;text-decoration:none;
+}
+.nav-cta:hover{background:var(--gold);color:var(--bg)}
+
+/* ── HERO ──────────────────────────────────────────────── */
+#hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  padding:8rem 2rem 4rem;
+  position:relative;
+  overflow:hidden;
+}
+.hero-orb{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(120px);
+  pointer-events:none;
+  opacity:.18;
+}
+.hero-orb.a{width:600px;height:600px;background:var(--gold);top:-100px;left:-150px;animation:drift 12s ease-in-out infinite alternate}
+.hero-orb.b{width:400px;height:400px;background:#4C7AC9;bottom:50px;right:-100px;animation:drift 16s ease-in-out infinite alternate-reverse}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(40px,30px) scale(1.1)}}
+
+.hero-tag{
+  display:inline-flex;align-items:center;gap:.6rem;
+  border:1px solid var(--border);
+  padding:.45rem 1.2rem;
+  border-radius:50px;
+  font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:2.5rem;
+  animation:fadeUp .8s .2s both;
+}
+.hero-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+
+h1{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(3rem,8vw,7rem);
+  font-weight:300;line-height:1.05;
+  letter-spacing:-.02em;
+  animation:fadeUp .9s .3s both;
+  max-width:900px;
+}
+h1 em{font-style:italic;color:var(--gold)}
+.hero-sub{
+  margin-top:1.8rem;
+  max-width:560px;
+  color:var(--text-muted);
+  font-size:1.05rem;line-height:1.7;font-weight:300;
+  animation:fadeUp .9s .45s both;
+}
+.hero-actions{
+  display:flex;gap:1.2rem;margin-top:3rem;
+  animation:fadeUp .9s .6s both;
+  flex-wrap:wrap;justify-content:center;
+}
+.btn-primary{
+  padding:1rem 2.8rem;
+  background:var(--gold);color:var(--bg);
+  border:none;border-radius:var(--r);
+  font-family:'Outfit',sans-serif;font-size:.9rem;
+  font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+  cursor:none;transition:all .3s;text-decoration:none;
+  position:relative;overflow:hidden;
+}
+.btn-primary::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 12px 40px rgba(201,168,76,.3)}
+.btn-primary:hover::after{opacity:1}
+.btn-secondary{
+  padding:1rem 2.5rem;
+  background:transparent;color:var(--text);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  font-family:'Outfit',sans-serif;font-size:.9rem;
+  letter-spacing:.1em;text-transform:uppercase;
+  cursor:none;transition:all .3s;text-decoration:none;
+}
+.btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+
+.hero-metrics{
+  display:flex;gap:4rem;margin-top:6rem;
+  animation:fadeUp .9s .75s both;
+  flex-wrap:wrap;justify-content:center;
+}
+.metric{text-align:center}
+.metric-val{
+  font-family:'Cormorant Garamond',serif;
+  font-size:3rem;font-weight:300;color:var(--gold);
+  line-height:1;
+}
+.metric-lbl{font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);margin-top:.4rem}
+
+.hero-scroll{
+  position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:.6rem;
+  animation:fadeIn 1s 1.2s both;
+}
+.hero-scroll span{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim)}
+.scroll-line{width:1px;height:50px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollAnim 2s ease-in-out infinite}
+@keyframes scrollAnim{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ── SECTION BASE ──────────────────────────────────────── */
+section{position:relative;z-index:2}
+.section-inner{max-width:1200px;margin:0 auto;padding:6rem 2rem}
+.section-tag{
+  display:inline-block;
+  font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1rem;
+}
+.section-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.2rem,5vw,4rem);
+  font-weight:300;line-height:1.1;
+}
+.section-sub{
+  color:var(--text-muted);max-width:580px;
+  line-height:1.7;margin-top:1rem;font-size:.95rem;
+}
+.divider{
+  width:60px;height:1px;
+  background:linear-gradient(to right,var(--gold),transparent);
+  margin:1.5rem 0;
+}
+
+/* ── FEATURES ──────────────────────────────────────────── */
+#features{background:var(--bg2)}
+.features-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;margin-top:4rem;
+  border:1px solid var(--border);
+  border-radius:8px;overflow:hidden;
+}
+.feature-card{
+  background:var(--surface);
+  padding:2.5rem;
+  transition:background .3s;
+  position:relative;overflow:hidden;
+}
+.feature-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(201,168,76,.06),transparent);
+  opacity:0;transition:opacity .4s;
+}
+.feature-card:hover{background:var(--surface2)}
+.feature-card:hover::before{opacity:1}
+.feat-icon{
+  width:48px;height:48px;
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;margin-bottom:1.5rem;
+  transition:border-color .3s;
+}
+.feature-card:hover .feat-icon{border-color:var(--gold)}
+.feat-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.4rem;font-weight:500;margin-bottom:.8rem;
+}
+.feat-desc{color:var(--text-muted);font-size:.88rem;line-height:1.65}
+
+/* ── COMMENT ÇA MARCHE ─────────────────────────────────── */
+#how{background:var(--bg)}
+.steps{display:flex;flex-direction:column;gap:0;margin-top:4rem;max-width:700px;margin-left:auto;margin-right:auto}
+.step{
+  display:flex;gap:2.5rem;align-items:flex-start;
+  padding:2.5rem 0;
+  border-bottom:1px solid var(--border);
+  opacity:0;transform:translateY(30px);
+  transition:all .6s ease;
+}
+.step.visible{opacity:1;transform:translateY(0)}
+.step:last-child{border-bottom:none}
+.step-num{
+  font-family:'Cormorant Garamond',serif;
+  font-size:4rem;font-weight:300;
+  color:var(--border);min-width:80px;
+  line-height:1;transition:color .3s;
+}
+.step:hover .step-num{color:var(--gold-dim)}
+.step-content{}
+.step-title{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:500;margin-bottom:.6rem}
+.step-desc{color:var(--text-muted);font-size:.9rem;line-height:1.65}
+
+/* ── TÉMOIGNAGE ─────────────────────────────────────────── */
+#testimonial{background:var(--bg2)}
+.testimonial-inner{
+  max-width:900px;margin:0 auto;
+  text-align:center;padding:6rem 2rem;
+}
+.testimonial-inner blockquote{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(1.6rem,3.5vw,2.8rem);
+  font-weight:300;font-style:italic;
+  line-height:1.35;color:var(--text);
+  margin:2rem 0;
+}
+.testimonial-inner blockquote strong{color:var(--gold);font-style:normal;font-weight:400}
+.testimonial-author{color:var(--text-muted);font-size:.82rem;letter-spacing:.18em;text-transform:uppercase}
+.testimonial-stars{color:var(--gold);font-size:1.2rem;margin-bottom:1.5rem}
+
+/* ── PRICING ───────────────────────────────────────────── */
+#pricing{background:var(--bg)}
+.pricing-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1.5rem;margin-top:4rem;
+  align-items:start;
+}
+.pricing-card{
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:2.5rem;
+  background:var(--surface);
+  transition:all .4s;
+  position:relative;
+  overflow:hidden;
+}
+.pricing-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;
+  height:2px;background:transparent;
+  transition:background .4s;
+}
+.pricing-card:hover{border-color:var(--border-hover);transform:translateY(-6px);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.pricing-card.featured{
+  border-color:var(--gold);
+  background:linear-gradient(160deg,rgba(201,168,76,.08),var(--surface));
+}
+.pricing-card.featured::before{background:linear-gradient(to right,var(--gold),var(--gold-light))}
+.pricing-badge{
+  display:inline-block;
+  background:var(--gold);color:var(--bg);
+  font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;
+  padding:.3rem .9rem;border-radius:50px;
+  font-weight:500;margin-bottom:1.2rem;
+}
+.pricing-plan{font-size:.72rem;letter-spacing:.22em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.8rem}
+.pricing-price{
+  font-family:'Cormorant Garamond',serif;
+  font-size:4rem;font-weight:300;line-height:1;
+  color:var(--text);
+}
+.pricing-price span{font-family:'Outfit',sans-serif;font-size:1rem;font-weight:300;color:var(--text-muted)}
+.pricing-desc{color:var(--text-muted);font-size:.85rem;margin:1rem 0 2rem;line-height:1.5}
+.pricing-feats{list-style:none;margin:1.5rem 0 2rem;display:flex;flex-direction:column;gap:.8rem}
+.pricing-feats li{
+  display:flex;align-items:center;gap:.8rem;
+  font-size:.88rem;color:var(--text-muted);
+}
+.pricing-feats li::before{
+  content:'';width:16px;height:16px;min-width:16px;
+  border-radius:50%;
+  background:rgba(76,201,122,.15);
+  border:1px solid rgba(76,201,122,.4);
+  display:flex;align-items:center;justify-content:center;
+  background-image:url("data:image/svg+xml,%3Csvg width='10' height='8' viewBox='0 0 10 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4l3 3 5-6' stroke='%234CC97A' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:center;background-size:10px;
+}
+.pricing-cta{
+  display:block;width:100%;padding:1rem;
+  text-align:center;border-radius:var(--r);
+  font-family:'Outfit',sans-serif;font-size:.85rem;
+  letter-spacing:.14em;text-transform:uppercase;
+  cursor:none;transition:all .3s;text-decoration:none;
+}
+.pricing-cta.outline{
+  border:1px solid var(--border);color:var(--text);background:transparent;
+}
+.pricing-cta.outline:hover{border-color:var(--gold);color:var(--gold)}
+.pricing-cta.gold{
+  background:var(--gold);color:var(--bg);border:none;font-weight:500;
+}
+.pricing-cta.gold:hover{background:var(--gold-light);box-shadow:0 8px 30px rgba(201,168,76,.3)}
+
+/* ── FAQ ────────────────────────────────────────────────── */
+#faq{background:var(--bg2)}
+.faq-list{max-width:720px;margin:3rem auto 0;display:flex;flex-direction:column;gap:0}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-q{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.5rem 0;cursor:none;
+  font-size:.95rem;color:var(--text);
+  transition:color .3s;
+}
+.faq-q:hover{color:var(--gold)}
+.faq-icon{
+  width:24px;height:24px;min-width:24px;
+  border:1px solid var(--border);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.9rem;color:var(--gold);
+  transition:transform .3s;
+}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+.faq-a{
+  max-height:0;overflow:hidden;
+  transition:max-height .4s ease,padding .3s;
+  color:var(--text-muted);font-size:.88rem;line-height:1.7;
+}
+.faq-item.open .faq-a{max-height:200px;padding-bottom:1.5rem}
+
+/* ── CTA FINAL ─────────────────────────────────────────── */
+#cta-final{
+  background:var(--bg);
+  text-align:center;
+  overflow:hidden;
+  position:relative;
+}
+#cta-final::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(201,168,76,.07),transparent);
+  pointer-events:none;
+}
+.cta-inner{max-width:700px;margin:0 auto;padding:8rem 2rem}
+.cta-inner h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(2.5rem,6vw,5rem);
+  font-weight:300;line-height:1.05;
+  margin-bottom:1.5rem;
+}
+.cta-inner p{color:var(--text-muted);font-size:1rem;line-height:1.7;max-width:480px;margin:0 auto 3rem}
+.cta-note{margin-top:1.5rem;color:var(--text-dim);font-size:.78rem;letter-spacing:.1em}
+
+/* ── FOOTER ────────────────────────────────────────────── */
+footer{
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  padding:3rem 4rem;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:2rem;
+  position:relative;z-index:2;
+}
+.footer-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.3rem;color:var(--gold);letter-spacing:.08em;
+}
+.footer-links{display:flex;gap:2rem}
+.footer-links a{
+  color:var(--text-dim);font-size:.78rem;letter-spacing:.12em;
+  text-transform:uppercase;text-decoration:none;transition:color .3s;
+}
+.footer-links a:hover{color:var(--gold)}
+.footer-copy{color:var(--text-dim);font-size:.75rem}
+
+/* ── ANIMATIONS ─────────────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.reveal{opacity:0;transform:translateY(40px);transition:all .7s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media(max-width:900px){
+  nav{padding:1.2rem 2rem}
+  nav.scrolled{padding:.9rem 2rem}
+  .nav-links{display:none}
+  .features-grid{grid-template-columns:1fr;gap:1px}
+  .pricing-grid{grid-template-columns:1fr;max-width:420px;margin-left:auto;margin-right:auto}
+  .hero-metrics{gap:2.5rem}
+  footer{flex-direction:column;text-align:center;padding:2rem}
+}
+</style>
+</head>
+<body>
+
+<!-- Curseur custom -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- ══ NAV ═══════════════════════════════════════════════ -->
+<nav id="nav">
+  <a href="#" class="nav-logo">Lizzie<span>RH</span></a>
+  <div class="nav-links">
+    <a href="#features">Fonctionnalités</a>
+    <a href="#how">Comment ça marche</a>
+    <a href="#pricing">Tarifs</a>
+    <a href="#faq">FAQ</a>
+    <a href="#pricing" class="nav-cta">Démarrer</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══════════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-orb a"></div>
+  <div class="hero-orb b"></div>
+
+  <div class="hero-tag">Intelligence Artificielle RH</div>
+
+  <h1>L'IA qui prend soin<br/><em>de vos équipes</em></h1>
+
+  <p class="hero-sub">
+    Lizzie analyse le bien-être de vos collaborateurs, détecte les signaux faibles,
+    et vous alerte avant que les problèmes n'escaladent. Tout en temps réel.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#pricing" class="btn-primary">Essai gratuit 14 jours</a>
+    <a href="#how" class="btn-secondary">Voir comment ça marche</a>
+  </div>
+
+  <div class="hero-metrics">
+    <div class="metric">
+      <div class="metric-val">94%</div>
+      <div class="metric-lbl">Satisfaction équipes</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">3×</div>
+      <div class="metric-lbl">Plus rapide qu'un audit</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">-62%</div>
+      <div class="metric-lbl">Turnover constaté</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">500+</div>
+      <div class="metric-lbl">Entreprises utilisatrices</div>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <span>Découvrir</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ══ FEATURES ══════════════════════════════════════════ -->
+<section id="features">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-tag">Fonctionnalités</div>
+      <h2 class="section-title">Tout ce dont votre RH<br/>a besoin, alimenté par l'IA</h2>
+      <div class="divider"></div>
+      <p class="section-sub">Lizzie ne remplace pas vos équipes RH — elle les rend 10× plus efficaces en automatisant l'analyse humaine.</p>
+    </div>
+
+    <div class="features-grid reveal" style="transition-delay:.1s">
+      <div class="feature-card">
+        <div class="feat-icon">🧠</div>
+        <div class="feat-title">Conversations IA intelligentes</div>
+        <p class="feat-desc">Lizzie dialogue naturellement avec vos collaborateurs, détecte le stress, le burnout et les conflits latents grâce à l'analyse sémantique avancée.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">Alertes en temps réel</div>
+        <p class="feat-desc">Recevez des notifications instantanées dès qu'un seuil critique est atteint — avant que la situation ne devienne irréversible.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">📊</div>
+        <div class="feat-title">Tableau de bord bien-être</div>
+        <p class="feat-desc">Visualisez l'état émotionnel de vos équipes par département, par période, par individu — avec des tendances claires et actionnables.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">🔒</div>
+        <div class="feat-title">100% confidentiel & RGPD</div>
+        <p class="feat-desc">Données chiffrées, hébergées en Europe, audit log complet. Vos collaborateurs peuvent s'exprimer librement, en anonymat si besoin.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">🔁</div>
+        <div class="feat-title">Check-ins automatisés</div>
+        <p class="feat-desc">Des micro-sondages hebdomadaires envoyés automatiquement. Simple, rapide, non intrusif. Un score de bien-être mis à jour en continu.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feat-icon">🔗</div>
+        <div class="feat-title">Intégrations natives</div>
+        <p class="feat-desc">Connectez Lizzie à Slack, Teams, ou votre SIRH existant. L'adoption est immédiate — aucune friction pour vos équipes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ COMMENT ÇA MARCHE ════════════════════════════════ -->
+<section id="how">
+  <div class="section-inner">
+    <div class="reveal" style="text-align:center">
+      <div class="section-tag">Processus</div>
+      <h2 class="section-title">Opérationnel en 10 minutes</h2>
+      <div class="divider" style="margin:1.5rem auto"></div>
+      <p class="section-sub" style="margin:0 auto">Pas de configuration complexe, pas d'intégration longue. Lizzie est prête dès votre première connexion.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">Créez votre espace entreprise</div>
+          <p class="step-desc">Inscrivez-vous, renseignez votre entreprise et invitez vos collaborateurs en quelques clics. Aucune carte bancaire requise pendant les 14 jours d'essai.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">Lizzie engage vos équipes</div>
+          <p class="step-desc">Elle prend contact avec chaque collaborateur, initie des conversations naturelles et collecte des données de bien-être de façon non intrusive.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">L'IA analyse & synthétise</div>
+          <p class="step-desc">Chaque échange est analysé par notre modèle d'IA. Scores de bien-être, sentiments, risques — tout est calculé automatiquement.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <div class="step-title">Vous agissez avec précision</div>
+          <p class="step-desc">Votre tableau de bord RH vous donne une vision claire et immédiate. Les alertes vous guident vers les actions prioritaires au bon moment.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TÉMOIGNAGE ════════════════════════════════════════ -->
+<section id="testimonial">
+  <div class="testimonial-inner reveal">
+    <div class="section-tag">Témoignages</div>
+    <div class="testimonial-stars">★★★★★</div>
+    <blockquote>
+      "Lizzie a détecté un <strong>risque de burnout</strong> dans notre équipe tech deux mois avant que la situation ne devienne critique. On a pu agir. Ça n'a pas de prix."
+    </blockquote>
+    <div class="testimonial-author">Sophie M. — DRH, Scale-up 85 personnes, Paris</div>
+  </div>
+</section>
+
+<!-- ══ PRICING ═══════════════════════════════════════════ -->
+<section id="pricing">
+  <div class="section-inner">
+    <div class="reveal" style="text-align:center">
+      <div class="section-tag">Tarification</div>
+      <h2 class="section-title">Simple. Transparent. Sans surprise.</h2>
+      <div class="divider" style="margin:1.5rem auto"></div>
+      <p class="section-sub" style="margin:0 auto">14 jours d'essai gratuit sur tous les plans. Annulation sans engagement. Facture mensuelle.</p>
+    </div>
+
+    <div class="pricing-grid reveal" style="transition-delay:.15s">
+
+      <!-- STARTER -->
+      <div class="pricing-card">
+        <div class="pricing-plan">Starter</div>
+        <div class="pricing-price">29€<span>/mois</span></div>
+        <p class="pricing-desc">Pour les petites équipes qui veulent prendre soin de leurs collaborateurs simplement.</p>
+        <ul class="pricing-feats">
+          <li>Jusqu'à 5 employés</li>
+          <li>Conversations illimitées avec Lizzie</li>
+          <li>Alertes automatiques</li>
+          <li>Tableau de bord bien-être</li>
+          <li>Support email</li>
+        </ul>
+        <a href="#" class="pricing-cta outline" onclick="handleCheckout('STARTER')">Commencer l'essai</a>
+      </div>
+
+      <!-- PRO (featured) -->
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Le plus populaire</div>
+        <div class="pricing-plan">Pro</div>
+        <div class="pricing-price">79€<span>/mois</span></div>
+        <p class="pricing-desc">Pour les entreprises en croissance qui ont besoin de fonctionnalités avancées et d'analyses approfondies.</p>
+        <ul class="pricing-feats">
+          <li>Jusqu'à 50 employés</li>
+          <li>Tout Starter inclus</li>
+          <li>Rapports avancés & exports</li>
+          <li>Check-ins automatiques</li>
+          <li>Intégration Slack / Teams</li>
+          <li>Support prioritaire</li>
+        </ul>
+        <a href="#" class="pricing-cta gold" onclick="handleCheckout('PRO')">Commencer l'essai</a>
+      </div>
+
+      <!-- ENTERPRISE -->
+      <div class="pricing-card">
+        <div class="pricing-plan">Entreprise</div>
+        <div class="pricing-price">199€<span>/mois</span></div>
+        <p class="pricing-desc">Pour les grandes organisations qui nécessitent sécurité renforcée, conformité et accompagnement dédié.</p>
+        <ul class="pricing-feats">
+          <li>Employés illimités</li>
+          <li>Tout Pro inclus</li>
+          <li>Multi-départements & SSO</li>
+          <li>Audit log RGPD complet</li>
+          <li>Onboarding dédié</li>
+          <li>SLA garanti 99.9%</li>
+        </ul>
+        <a href="#" class="pricing-cta outline" onclick="handleCheckout('ENTERPRISE')">Contacter les ventes</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ════════════════════════════════════════════════ -->
+<section id="faq">
+  <div class="section-inner">
+    <div class="reveal" style="text-align:center">
+      <div class="section-tag">Questions fréquentes</div>
+      <h2 class="section-title">Vous avez des questions ?</h2>
+    </div>
+
+    <div class="faq-list reveal" style="transition-delay:.1s">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>Les données de mes employés sont-elles sécurisées ?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">Absolument. Toutes les données sont chiffrées AES-256, hébergées en Europe (RGPD), et ne sont jamais revendues à des tiers. Chaque tenant est isolé dans son propre espace. Un audit log complet est disponible sur le plan Entreprise.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>Les employés savent-ils qu'une IA les analyse ?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">Oui — la transparence est au cœur de notre approche. Lizzie se présente toujours clairement comme une IA. Les collaborateurs peuvent aussi répondre de façon anonyme, ce qui améliore la qualité des données recueillies.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>Puis-je changer de plan ou annuler à tout moment ?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">Oui, sans engagement ni pénalité. Vous pouvez upgrader, downgrader ou annuler depuis votre espace client Stripe à tout moment. En cas d'annulation, votre accès reste actif jusqu'à la fin de la période payée.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>Lizzie remplace-t-elle un vrai responsable RH ?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">Non — et c'est voulu. Lizzie amplifie les capacités de votre RH en automatisant la collecte et l'analyse de données. La décision et l'action humaine restent essentielles. Lizzie est un assistant, pas un substitut.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>Combien de temps pour être opérationnel ?</span>
+          <div class="faq-icon">+</div>
+        </div>
+        <div class="faq-a">Moins de 10 minutes. Créez votre compte, importez vos collaborateurs (CSV ou manuel) et Lizzie est prête. Aucune intégration technique obligatoire pour démarrer.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA FINAL ═════════════════════════════════════════ -->
+<section id="cta-final">
+  <div class="cta-inner reveal">
+    <h2>Vos équipes méritent<br/><em style="font-family:'Cormorant Garamond',serif;color:var(--gold)">mieux qu'un tableur.</em></h2>
+    <p>Rejoignez les entreprises qui ont choisi Lizzie pour prendre soin de leurs collaborateurs. Premier mois offert, aucune carte requise.</p>
+    <a href="#pricing" class="btn-primary">Démarrer gratuitement — 14 jours</a>
+    <div class="cta-note">Aucune carte bancaire · Annulation libre · Données en Europe</div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-logo">LizzieRH</div>
+  <div class="footer-links">
+    <a href="#">Confidentialité</a>
+    <a href="#">CGU</a>
+    <a href="#">Contact</a>
+    <a href="#">Blog</a>
+  </div>
+  <div class="footer-copy">© 2025 Lizzie RH. Tous droits réservés.</div>
+</footer>
+
+<script>
+// ── Curseur custom ──────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cursor.style.left=mx+'px';cursor.style.top=my+'px'});
+(function animRing(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animRing)})();
+
+// ── Nav scroll ─────────────────────────────────────────
+const nav = document.getElementById('nav');
+window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>60)});
+
+// ── Intersection Observer (reveals & steps) ─────────────
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}
+  });
+},{threshold:.12});
+document.querySelectorAll('.reveal,.step').forEach(el=>io.observe(el));
+
+// ── FAQ toggle ─────────────────────────────────────────
+function toggleFaq(el){
+  const item = el.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
+
+// ── Checkout Stripe ────────────────────────────────────
+async function handleCheckout(plan){
+  try{
+    const res = await fetch('/api/billing/checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body:JSON.stringify({plan})
+    });
+    const data = await res.json();
+    if(data.url) window.location.href = data.url;
+    else alert('Veuillez vous connecter pour continuer.');
+  }catch(err){
+    // En mode démo, rediriger vers l'inscription
+    window.location.href = '/register?plan='+plan;
+  }
+}
+
+// ── Compteurs animés (hero metrics) ────────────────────
+function animateCounters(){
+  document.querySelectorAll('.metric-val').forEach(el=>{
+    const text = el.textContent;
+    const num = parseFloat(text.replace(/[^0-9.]/g,''));
+    const prefix = text.match(/^[^0-9]*/)?.[0]||'';
+    const suffix = text.match(/[^0-9.]*$/)?.[0]||'';
+    if(isNaN(num)) return;
+    let start=0,duration=1800;
+    const step=timestamp=>{
+      if(!start) start=timestamp;
+      const progress=Math.min((timestamp-start)/duration,1);
+      const ease=1-Math.pow(1-progress,3);
+      const val = num*ease;
+      el.textContent = prefix+(Number.isInteger(num)?Math.round(val):val.toFixed(0))+suffix;
+      if(progress<1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+const counterObs = new IntersectionObserver((entries)=>{
+  if(entries[0].isIntersecting){animateCounters();counterObs.disconnect();}
+},{threshold:.5});
+const metricsEl = document.querySelector('.hero-metrics');
+if(metricsEl) counterObs.observe(metricsEl);
+</script>
+</body>
+</html>

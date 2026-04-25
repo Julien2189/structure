@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liquidity Predictor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<div class="app">
+
+  <!-- ═══ HEADER ═══ -->
+  <header class="header">
+    <h1 class="header__logo">Liquidity Predictor</h1>
+    <p class="header__sub">Prédiction IA · TensorFlow.js</p>
+  </header>
+
+  <!-- ═══ TOP BAR ═══ -->
+  <div class="topbar">
+
+    <!-- Asset Selector -->
+    <div class="glass select-group">
+  <label for="actif">Actif</label>
+  <div class="select-wrapper">
+    <select class="assetSelect" id="actif">
+      <option value="crypto">Crypto</option>
+      <option value="forex">Forex</option>
+      <option value="action">Actions françaises</option>
+      <option value="actionus">Actions américaines</option>
+    </select>
+  </div>
+
+  <label  for="symbole">Symbole</label>
+  <div class="select-wrapper">
+    <select class="assetSelect" id="symbole"></select>
+  </div>
+</div>
+
+
+    <!-- Current Price -->
+    <div class="glass price-display">
+      <span class="price-display__label">Prix actuel</span>
+      <div class="price-display__value" id="currentPrice">—<span class="currency">USDT</span></div>
+      <div class="price-display__change up" id="priceChange">—</div>
+    </div>
+
+    <!-- Status -->
+    <div class="glass status-box">
+      <div class="status-indicator">
+        <div class="status-dot ready" id="statusDot"></div>
+        <span class="status-text" id="statusText">Prêt</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ TIMEFRAME ═══ -->
+  <div class="timeframe-bar glass">
+    <button class="timeframe-btn active" data-period="30">1M</button>
+    <button class="timeframe-btn" data-period="180">6M</button>
+    <button class="timeframe-btn" data-period="365">1A</button>
+    <button class="timeframe-btn" data-period="1825">5A</button>
+  </div>
+
+    <!-- ═══ PROGRESS BAR ═══ -->
+  <div class="progress-section" id="progressSection">
+    <div class="progress-label"><span id="progressLabel">Entraînement — Epoch 0 / 200</span></div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- ═══ LOG ═══ -->
+  <div class="log-panel glass" id="logPanel">
+    <div id="logContent"></div>
+  </div>
+
+  <!-- ═══ ACTION BUTTONS ═══ -->
+  <div class="actions">
+    <button class="btn btn--load" id="btnLoad">⟳ Charger les données</button>
+    <button class="btn btn--predict" id="btnPredict">⚡ Prédire</button>
+  </div>
+
+  <!-- ═══ PREDICTION RESULT ═══ -->
+  <div class="prediction-panel glass" id="predictionPanel">
+    <div class="prediction-panel__label">Prédiction J+1</div>
+    <div class="prediction-panel__value" id="predictionValue">— USDT</div>
+    <div class="prediction-panel__meta" id="predictionMeta">Modèle : Dense 16→8→1 · 200 epochs</div>
+  </div>
+
+  <!-- ═══ CHART ═══ -->
+  <div class="chart-panel glass">
+    <div id="chartContainer">
+      <p class="chart-placeholder">▶ Charger les données pour afficher le graphique</p>
+      <!-- Ton canvas / chart ici -->
+      <canvas id="priceChart" style="display:none; width:100%; height:100%;"></canvas>
+    </div>
+  </div>
+
+
+  <div class="footer">NeuraTrade · JLQ Développement · 2026</div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<!--
+<script src="script.js" defer></script>
+
+-->
+<script>
+  
+
+  const DOM = {
+assetSelect: document.getElementById('actif'), 
+   currentPrice: document.getElementById('currentPrice'),
+    priceChange: document.getElementById('priceChange'),
+    statusDot: document.getElementById('statusDot'),
+    statusText: document.getElementById('statusText'),
+    btnLoad: document.getElementById('btnLoad'),
+    btnPredict: document.getElementById('btnPredict'),
+    chartContainer: document.getElementById('chartContainer'),
+    chartPlaceholder: document.querySelector('.chart-placeholder'),
+    priceChart: document.getElementById('priceChart'),
+    progressSection: document.getElementById('progressSection'),
+    progressFill: document.getElementById('progressFill'),
+    progressLabel: document.getElementById('progressLabel'),
+    logPanel: document.getElementById('logPanel'),
+    logContent: document.getElementById('logContent'),
+    predictionPanel: document.getElementById('predictionPanel'),
+    predictionValue: document.getElementById('predictionValue'),
+    predictionMeta: document.getElementById('predictionMeta'),
+    timeframeBtns: document.querySelectorAll('.timeframe-btn'),
+    
+  };
+  const actif = document.getElementById('actif') ;
+  const action = document.getElementById('action') ; 
+  const forex = document.getElementById('forex') ; 
+
+
+  const optionsParActif = {
+  crypto: [
+    { value: "BTCUSDT", text: "BTC — Bitcoin" },
+    { value: "ETHUSDT", text: "ETH — Ethereum" },
+    { value: "BNBUSDT", text: "BNB — Binance Coin" },
+    { value: "SOLUSDT", text: "SOL — Solana" },
+    { value: "XRPUSDT", text: "XRP — Ripple" },
+    { value: "ADAUSDT", text: "ADA — Cardano" },
+    { value: "DOGEUSDT", text: "DOGE — Dogecoin" },
+    { value: "DOTUSDT", text: "DOT — Polkadot" },
+    { value: "AVAXUSDT", text: "AVAX — Avalanche" },
+    { value: "LINKUSDT", text: "LINK — Chainlink" }
+  ],
+
+  forex: [
+    { value: "EUR_USD", text: "EUR/USD" },
+    { value: "GBP_USD", text: "GBP/USD" },
+    { value: "USD_JPY", text: "USD/JPY" },
+    { value: "USD_CHF", text: "USD/CHF" },
+    { value: "EUR_GBP", text: "EUR/GBP" },
+    { value: "EUR_JPY", text: "EUR/JPY" },
+    { value: "EUR_CHF", text: "EUR/CHF" },
+    { value: "AUD_USD", text: "AUD/USD" },
+    { value: "USD_CAD", text: "USD/CAD" },
+    { value: "NZD_USD", text: "NZD/USD" }
+  ],
+
+  action: [
+    { value: "MC.PA", text: "LVMH" },
+    { value: "TTE.PA", text: "TotalEnergies" },
+    { value: "AIR.PA", text: "Airbus" },
+    { value: "OR.PA", text: "L'Oréal" },
+    { value: "SAN.PA", text: "Sanofi" },
+    { value: "BN.PA", text: "Danone" },
+    { value: "CAP.PA", text: "Capgemini" },
+    { value: "SU.PA", text: "Schneider Electric" },
+    { value: "AI.PA", text: "Air Liquide" },
+    { value: "ACA.PA", text: "Crédit Agricole" }
+  ],
+
+  actionus: [
+    { value: "AAPL", text: "Apple" },
+    { value: "MSFT", text: "Microsoft" },
+    { value: "NVDA", text: "NVIDIA" },
+    { value: "AMZN", text: "Amazon" },
+    { value: "GOOGL", text: "Alphabet" },
+    { value: "META", text: "Meta" },
+    { value: "TSLA", text: "Tesla" },
+    { value: "AMD", text: "AMD" },
+    { value: "NFLX", text: "Netflix" },
+    { value: "JPM", text: "JPMorgan" }
+  ]
+};
+const actifSelect = document.getElementById("actif");
+const symboleSelect = document.getElementById("symbole");
+const symb = document.getElementById('symbole1') ; 
+
+function remplirSymboles(typeActif) {
+  symboleSelect.innerHTML = "" ;
+  const liste = optionsParActif[typeActif] ;
+
+  liste.forEach(item =>{
+    const option = document.createElement("option") ; 
+    option.value = item.value ; 
+    option.textContent = item.text ;
+    symboleSelect.appendChild(option) ;
+     }) ;
+}
+remplirSymboles(actifSelect.value) ;
+  const pairs = {
+      EUR_USD: { base:"EUR" , quote:"USD"} ,
+      GBP_USD: { base:"GBP" ,quote:"USD"} ,
+      USD_JPY: { base:"USD" , quote:"JPY"} ,
+      USD_CHF: { base:"USD" ,quote:"CHF"} ,
+      EUR_GBP: { base:"EUR" ,quote:"GBP"} ,
+      EUR_JPY: {  base:'EUR' , quote:"JPY"} ,
+      EUR_CHF: {base:"EUR" , quote:"CHR" } ,
+      AUD_USD: {base:"AUD" ,quote:"USD" } ,
+      USD_CAD: { base:"USD" , quote:"CAD"} ,
+      NZD_USD: {base:"NZD" ,quote:"USD"} ,
+
+  }
+
+const choix = actifSelect.value;
+const symbole = symboleSelect.value;
+
+console.log("Type :", choix);
+console.log("Symbole :", symbole);
+mettreAjourPrix() ; 
+
+ function mettreAjourPrix() {
+    const choix = actifSelect.value ;
+    const symbole = symboleSelect.value ;
+
+    if(choix === "crypto") {
+      console.log("appel api crypto" , symbole) ;
+      afficheCrypto(symbole) ;
+    }
+    else if (choix === "forex") {
+      console.log("appel api forex" , symbole) ;
+      afficheForex(symbole) ;
+    }
+    else if(choix === "action"){
+        console.log("appel api action" , symbole); 
+
+    }
+
+else if (choix === "actionus") {
+  console.log("appel api action us" , symbole); 
+          afficheAction(symbole) ;
+
+}
+  }
+actifSelect.addEventListener("change", () => {
+  remplirSymboles(actifSelect.value);
+ // console.log(actifSelect.value) ;
+  //console.log(symboleSelect.value) ;
+     mettreAjourPrix();
+   
+});
+  symboleSelect.addEventListener('change' , () => {
+      mettreAjourPrix() ;
+     }) ;
+
+let intervalId = null ; 
+
+  let close = [];
+  let labels = [];
+  let periode = 30;
+  let chartInstance = null;
+
+  function setStatus(mode, text) {
+    DOM.statusDot.classList.remove('ready', 'loading', 'error');
+    DOM.statusDot.classList.add(mode);
+    DOM.statusText.textContent = text;
+  }
+
+  function addLog(message, type = '') {
+    DOM.logPanel.classList.add('visible');
+
+    const line = document.createElement('div');
+    line.className = 'log-line';
+
+    if (type === 'epoch') {
+      line.innerHTML = message;
+    } else {
+      line.textContent = message;
+    }
+
+    DOM.logContent.appendChild(line);
+
+    // défilement automatique
+    DOM.logPanel.scrollTop = DOM.logPanel.scrollHeight;
+  }
+
+  function clearLogs() {
+    DOM.logContent.innerHTML = '';
+  }
+
+  function resetProgress(totalEpochs = 200) {
+    DOM.progressSection.classList.add('visible');
+    DOM.progressFill.style.width = '0%';
+    DOM.progressLabel.textContent = `Entraînement — Epoch 0 / ${totalEpochs}`;
+  }
+
+  function renderChart(chartLabels, chartData) {
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    DOM.chartPlaceholder.style.display = 'none';
+    DOM.priceChart.style.display = 'block';
+
+    const ctx = DOM.priceChart.getContext('2d');
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: chartLabels,
+        datasets: [
+          {
+            label: 'Prix de clôture',
+            data: chartData,
+            borderColor: '#00f0ff',
+            backgroundColor: 'rgba(0, 240, 255, 0.08)',
+            borderWidth: 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            tension: 0.25,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: '#e0e8ff',
+              font: {
+                family: 'Rajdhani'
+              }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(10, 14, 30, 0.95)',
+            titleColor: '#00f0ff',
+            bodyColor: '#e0e8ff',
+            borderColor: 'rgba(0, 240, 255, 0.25)',
+            borderWidth: 1
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: '#5a6480',
+              maxTicksLimit: 8
+            },
+            grid: {
+              color: 'rgba(255,255,255,0.04)'
+            }
+          },
+          y: {
+            ticks: {
+              color: '#5a6480'
+            },
+            grid: {
+              color: 'rgba(255,255,255,0.04)'
+            }
+          }
+        }
+      }
+    });
+  }
+
+
+ async function afficheForex(symbole) { 
+  const paire = symbole ; 
+ 
+  const base = pairs[paire].base;
+  console.log(base) ; 
+
+  const quote = pairs[paire].quote;
+  console.log(quote) ;
+  const url = 'https://api.frankfurter.dev/v1/latest?base=${base}&symbols=${quote}'
+   try {
+     const response = await fetch(`https://api.frankfurter.dev/v1/latest?base=${base}&symbols=${quote}`)
+      if(!response.ok) {
+        throw new Error('prix introuvable') ;
+      }
+      const data = await response.json() ;
+      const prix = data.rates[quote] ;     
+      console.log(prix) ; 
+            DOM.currentPrice.innerHTML = `${prix}<span class="currency"> USDT</span>`;
+
+    }
+    catch(error) {
+       console.error(error);
+      DOM.currentPrice.innerHTML = `Erreur<span class="currency"> USDT</span>`;
+      setStatus('error', 'Erreur prix');
+      return null;
+    }
+  
+ }
+    
+async function afficheCrypto(crypto) {
+    try {
+      const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${crypto}`);
+      const data = await response.json();
+            console.log(data.price) ;
+
+      if (!data.price) {
+        throw new Error('Prix introuvable');
+      }
+
+      const prix = Number(data.price).toFixed(3);
+      DOM.currentPrice.innerHTML = `${prix}<span class="currency"> USDT</span>`;
+
+      return data;
+    } catch (error) {
+      console.error(error);
+      DOM.currentPrice.innerHTML = `Erreur<span class="currency"> USDT</span>`;
+      setStatus('error', 'Erreur prix');
+      return null;
+    }
+  }
+
+async function afficheAction(action) {
+   const token = "d5pabi1r01qs8sp50pagd5pabi1r01qs8sp50pb0"; 
+  try {
+    const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${action}&token=${token}`) ;
+    const data = await response.json() ;
+
+    if(!data.c) {
+      throw new Error('Prix introuvable') ;
+    }
+      const prix = Number(data.c).toFixed(3) ;
+      console.log(prix)  ;
+      DOM.currentPrice.innerHTML = `${prix}<span class="currency"> USDT</span>`;
+
+  }
+  catch(error) {
+    console.error(error) ;
+          DOM.currentPrice.innerHTML = `Erreur<span class="currency"> USDT</span>`;
+
+
+    return null ;
+  }
+}
+
+
+
+  async function recuperePrix(crypto, temp) {
+    try {
+      const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${crypto}&interval=1d&limit=${temp}`);
+      const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('Réponse Binance invalide');
+      }
+
+      return data;
+    } catch (error) {
+      console.error(error);
+      setStatus('error', 'Erreur chargement');
+      addLog(`Erreur de récupération des données : ${error.message}`);
+      return [];
+    }
+  }
+  
+
+ 
+
+  DOM.timeframeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      DOM.timeframeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      periode = Number(btn.dataset.period);
+      setStatus('ready', `Période ${btn.textContent}`);
+    });
+  });
+
+
+  function formaterDate(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit'
+    });
+  }
+
+ DOM.btnLoad.addEventListener('click', async () => {
+  setStatus('loading', 'Chargement...');
+  clearLogs();
+
+  const typeActif = actifSelect.value;
+  const symbole = symboleSelect.value;
+
+  addLog(`Chargement des données pour ${symbole} sur ${periode} jours...`);
+
+  close = [];
+  labels = [];
+
+  DOM.predictionPanel.classList.remove('visible');
+  DOM.progressSection.classList.remove('visible');
+  DOM.progressFill.style.width = '0%';
+
+  let prix = [];
+
+  if (typeActif === "crypto") {
+    prix = await recuperePrixCrypto(symbole, periode);
+  } else if (typeActif === "forex") {
+    prix = await recuperePrixForex(symbole, periode);
+  } else if (typeActif === "action") {
+    prix = await recuperePrixAction(symbole, periode);
+  } else if (typeActif === "actionus") {
+    prix = await recuperePrixActionUS(symbole, periode);
+  }
+
+  if (!prix.length) {
+    setStatus('error', 'Aucune donnée');
+    addLog('Aucune donnée reçue.');
+    return;
+  }
+
+  const valeurs = [];
+
+  for (let i = 0; i < prix.length; i++) {
+    const [
+      openTime,
+      open,
+      high,
+      low,
+      closePrice,
+      volume,
+      closeTime,
+      quoteVolume,
+      trades,
+      takerBuyBaseVolume,
+      takerBuyQuoteVolume
+    ] = prix[i];
+
+    valeurs.push({
+      openTime: formaterDate(openTime),
+      open: parseFloat(open),
+      high: parseFloat(high),
+      low: parseFloat(low),
+      close: parseFloat(closePrice),
+      volume: parseFloat(volume),
+      closeTime: formaterDate(closeTime),
+      quoteVolume: parseFloat(quoteVolume),
+      trades: Number(trades),
+      takerBuyBaseVolume: parseFloat(takerBuyBaseVolume),
+      takerBuyQuoteVolume: parseFloat(takerBuyQuoteVolume)
+    });
+  }
+
+  close = valeurs.map(v => v.close);
+  labels = valeurs.map(v => v.closeTime);
+
+  renderChart(labels, close);
+
+  addLog(`Données chargées : ${close.length} points.`);
+  addLog(`Graphique affiché pour ${symbole}.`);
+  setStatus('ready', 'Données prêtes');
+});
+function getTimestampsFromDays(temp) {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - temp);
+
+  return {
+    startMs: start.getTime(),
+    endMs: end.getTime(),
+    startSec: Math.floor(start.getTime() / 1000),
+    endSec: Math.floor(end.getTime() / 1000),
+    startDate: start.toISOString().split("T")[0],
+    endDate: end.toISOString().split("T")[0]
+  };
+}
+
+// 1) CRYPTO
+async function recuperePrixCrypto(symbole, temp) {
+  try {
+    const { startMs, endMs } = getTimestampsFromDays(temp);
+    let allData = [];
+    let currentStart = startMs;
+
+    while (currentStart < endMs) {
+      const response = await fetch(
+        `https://api.binance.com/api/v3/klines?symbol=${symbole}&interval=1d&startTime=${currentStart}&endTime=${endMs}&limit=1000`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("Réponse Binance invalide");
+      }
+
+      if (data.length === 0) {
+        break;
+      }
+
+      allData = allData.concat(data);
+
+      // on repart après la dernière bougie reçue
+      currentStart = data[data.length - 1][0] + 24 * 60 * 60 * 1000;
+
+      // sécurité anti-boucle
+      if (data.length < 1000) {
+        break;
+      }
+    }
+
+    return allData;
+  } catch (error) {
+    console.error(error);
+    setStatus('error', 'Erreur chargement crypto');
+    addLog(`Erreur crypto : ${error.message}`);
+    return [];
+  }
+}
+
+// 2) FOREX
+async function recuperePrixForex(symbole, temp) {
+  try {
+    const paire = pairs[symbole];
+    if (!paire) {
+      throw new Error("Paire forex introuvable");
+    }
+
+    const { startDate, endDate } = getTimestampsFromDays(temp);
+
+    const response = await fetch(
+      `https://api.frankfurter.dev/v1/${startDate}..${endDate}?base=${paire.base}&symbols=${paire.quote}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.rates || typeof data.rates !== "object") {
+      throw new Error("Réponse Frankfurter invalide");
+    }
+
+    const resultat = Object.entries(data.rates).map(([date, rates]) => {
+      const close = Number(rates[paire.quote]);
+      const timestamp = new Date(date).getTime();
+
+      // format compatible avec ton parsing actuel
+      return [
+        timestamp, // openTime
+        close,     // open
+        close,     // high
+        close,     // low
+        close,     // close
+        0,         // volume
+        timestamp, // closeTime
+        0,         // quoteVolume
+        0,         // trades
+        0,         // takerBuyBaseVolume
+        0          // takerBuyQuoteVolume
+      ];
+    });
+
+    return resultat;
+  } catch (error) {
+    console.error(error);
+    setStatus('error', 'Erreur chargement forex');
+    addLog(`Erreur forex : ${error.message}`);
+    return [];
+  }
+}
+
+// 3) ACTIONS FR
+async function recuperePrixAction(symbole, temp) {
+  const token = "d5pabi1r01qs8sp50pagd5pabi1r01qs8sp50pb0";
+
+  try {
+    const { startSec, endSec } = getTimestampsFromDays(temp);
+
+    const response = await fetch(
+      `https://finnhub.io/api/v1/stock/candle?symbol=${symbole}&resolution=D&from=${startSec}&to=${endSec}&token=${token}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (
+      data.s !== "ok" ||
+      !Array.isArray(data.t) ||
+      !Array.isArray(data.o) ||
+      !Array.isArray(data.h) ||
+      !Array.isArray(data.l) ||
+      !Array.isArray(data.c)
+    ) {
+      throw new Error("Réponse Finnhub invalide");
+    }
+
+    return data.t.map((timestamp, index) => [
+      timestamp * 1000,         // openTime
+      data.o[index] ?? 0,       // open
+      data.h[index] ?? 0,       // high
+      data.l[index] ?? 0,       // low
+      data.c[index] ?? 0,       // close
+      data.v?.[index] ?? 0,     // volume
+      timestamp * 1000,         // closeTime
+      0,                        // quoteVolume
+      0,                        // trades
+      0,                        // takerBuyBaseVolume
+      0                         // takerBuyQuoteVolume
+    ]);
+  } catch (error) {
+    console.error(error);
+    setStatus('error', 'Erreur chargement action');
+    addLog(`Erreur action FR : ${error.message}`);
+    return [];
+  }
+}
+
+// 4) ACTIONS US
+async function recuperePrixActionUS(symbole, temp) {
+  const token = "d5pabi1r01qs8sp50pagd5pabi1r01qs8sp50pb0";
+
+  try {
+    const { startSec, endSec } = getTimestampsFromDays(temp);
+
+    const response = await fetch(
+      `https://finnhub.io/api/v1/stock/candle?symbol=${symbole}&resolution=D&from=${startSec}&to=${endSec}&token=${token}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (
+      data.s !== "ok" ||
+      !Array.isArray(data.t) ||
+      !Array.isArray(data.o) ||
+      !Array.isArray(data.h) ||
+      !Array.isArray(data.l) ||
+      !Array.isArray(data.c)
+    ) {
+      throw new Error("Réponse Finnhub invalide");
+    }
+
+    return data.t.map((timestamp, index) => [
+      timestamp * 1000,         // openTime
+      data.o[index] ?? 0,       // open
+      data.h[index] ?? 0,       // high
+      data.l[index] ?? 0,       // low
+      data.c[index] ?? 0,       // close
+      data.v?.[index] ?? 0,     // volume
+      timestamp * 1000,         // closeTime
+      0,                        // quoteVolume
+      0,                        // trades
+      0,                        // takerBuyBaseVolume
+      0                         // takerBuyQuoteVolume
+    ]);
+  } catch (error) {
+    console.error(error);
+    setStatus('error', 'Erreur chargement action US');
+    addLog(`Erreur action US : ${error.message}`);
+    return [];
+  }
+}
+  DOM.btnPredict.addEventListener('click', async () => {
+    if (close.length < 2) {
+      clearLogs();
+      addLog("Charge d'abord les données.");
+      DOM.logPanel.classList.add('visible');
+      setStatus('error', 'Pas de données');
+      return;
+    }
+
+    const totalEpochs = 500;
+
+    clearLogs();
+    resetProgress(totalEpochs);
+    DOM.predictionPanel.classList.remove('visible');
+    DOM.logPanel.classList.add('visible');
+
+    addLog(`Préparation du modèle pour ${DOM.assetSelect.value}...`);
+    addLog(`Début de l'entraînement sur ${close.length} valeurs.`);
+    setStatus('loading', 'Entraînement...');
+
+    const xsData = close.slice(0, -1);
+    const ysData = close.slice(1);
+
+    const xs = tf.tensor2d(xsData, [xsData.length, 1]);
+    const ys = tf.tensor2d(ysData, [ysData.length, 1]);
+
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ units: 16, activation: 'relu', inputShape: [1] }));
+    model.add(tf.layers.dense({ units: 8, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 1, activation: 'linear' }));
+
+    model.compile({
+      optimizer: 'adam',
+      loss: 'meanSquaredError'
+    });
+
+    try {
+      await model.fit(xs, ys, {
+        epochs: totalEpochs,
+        callbacks: {
+          onTrainBegin: async () => {
+            addLog('Entraînement lancé...');
+            await tf.nextFrame();
+          },
+
+          onEpochEnd: async (epoch, logs) => {
+            const currentEpoch = epoch + 1;
+            const progress = (currentEpoch / totalEpochs) * 100;
+
+            DOM.progressFill.style.width = `${progress}%`;
+            DOM.progressLabel.textContent = `Entraînement — Epoch ${currentEpoch} / ${totalEpochs}`;
+
+            addLog(
+              `<span class="log-epoch">Epoch ${currentEpoch}</span> — <span class="log-loss">Loss: ${logs.loss.toFixed(6)}</span>`,
+              'epoch'
+            );
+
+            setStatus('loading', `Epoch ${currentEpoch}/${totalEpochs}`);
+            await tf.nextFrame();
+          },
+
+          onTrainEnd: async () => {
+            addLog("Entraînement terminé.");
+            await tf.nextFrame();
+          }
+        }
+      });
+
+      const lastClose = close[close.length - 1];
+      const input = tf.tensor2d([lastClose], [1, 1]);
+
+      const pred = model.predict(input);
+      const valeurPredite = pred.dataSync()[0];
+
+      DOM.predictionPanel.classList.add('visible');
+      DOM.predictionValue.textContent = `${valeurPredite.toFixed(6)} USDT`;
+      DOM.predictionMeta.textContent =
+        `Modèle : Dense 16→8→1 · ${totalEpochs} epochs · Dernière clôture : ${lastClose.toFixed(6)} USDT`;
+
+      addLog(`Dernière clôture : ${lastClose.toFixed(6)} USDT`);
+      addLog(`Prédiction J+1 : ${valeurPredite.toFixed(6)} USDT`);
+
+      setStatus('ready', 'Prédiction prête');
+
+      pred.dispose();
+      input.dispose();
+    } catch (error) {
+      console.error(error);
+      addLog(`Erreur pendant l'entraînement : ${error.message}`);
+      setStatus('error', 'Erreur modèle');
+    } finally {
+      xs.dispose();
+      ys.dispose();
+    }
+  }) ; 
+</script>
+</body>
+</html>

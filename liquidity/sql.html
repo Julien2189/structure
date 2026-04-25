@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL & MySQL — Du SELECT à l'API | CodeMaster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Fira+Code:wght@300;400;500;600&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{--sp-xs:.5rem;--sp-sm:1rem;--sp-md:1.5rem;--sp-lg:2rem;--sp-xl:3rem;--sp-2xl:4rem;--container-px:2rem;--card-px:2rem;--card-radius:16px;}
+[data-theme="dark"]{
+  --cyan:#00f0ff;--magenta:#ff00e5;--violet:#8b5cf6;--green:#00ff9d;--orange:#ff9f43;--yellow:#fbbf24;
+  --bg:#0a0a1a;--card-bg:rgba(15,15,40,0.65);--glass-border:rgba(0,240,255,0.15);
+  --text:#e0e0f0;--text-muted:#9090b0;--text-heading:#e0e0f0;--nav-bg:rgba(10,10,26,0.92);
+  --code-bg:rgba(5,5,20,0.9);--code-text:#c8c8e0;--code-border:rgba(139,92,246,0.2);
+  --code-header-bg:rgba(139,92,246,0.1);--code-header-border:rgba(139,92,246,0.15);
+  --table-header-bg:rgba(139,92,246,0.12);--table-row-hover:rgba(0,240,255,0.04);
+  --table-row-border:rgba(139,92,246,0.06);--tip-bg:rgba(0,240,255,0.04);
+  --tip-warn-bg:rgba(255,0,229,0.04);--tip-green-bg:rgba(0,255,157,0.04);
+  --gradient-1:linear-gradient(135deg,var(--cyan),var(--violet));
+  --gradient-2:linear-gradient(135deg,var(--magenta),var(--violet));
+  --gradient-3:linear-gradient(135deg,var(--cyan),var(--magenta));
+  --glow-cyan:rgba(0,240,255,0.06);--glow-magenta:rgba(255,0,229,0.05);--glow-violet:rgba(139,92,246,0.04);
+  --grid-line:rgba(0,240,255,0.5);--grid-opacity:.03;--scrollbar-track:#0a0a1a;
+  --shadow-card:0 0 30px rgba(0,240,255,0.05);--nav-link-hover:rgba(0,240,255,0.08);
+  --formula-bg:rgba(0,240,255,0.04);--formula-border:rgba(0,240,255,0.2);
+  --math-bg:rgba(139,92,246,0.06);--math-border:rgba(139,92,246,0.25);
+  --tag-a-bg:rgba(0,240,255,0.1);--tag-a-border:rgba(0,240,255,0.2);
+  --tag-b-bg:rgba(255,0,229,0.1);--tag-b-border:rgba(255,0,229,0.2);
+  --tag-c-bg:rgba(139,92,246,0.12);--tag-c-border:rgba(139,92,246,0.25);
+  --tag-d-bg:rgba(0,255,157,0.08);--tag-d-border:rgba(0,255,157,0.2);
+  --db-cell:rgba(15,15,40,0.9);--db-border:rgba(0,240,255,0.25);--db-head:rgba(139,92,246,0.2);
+  --join-left:rgba(0,240,255,0.15);--join-right:rgba(255,0,229,0.15);--join-both:rgba(139,92,246,0.25);
+  --syn-kw:#ff00e5;--syn-fn:#00f0ff;--syn-str:#a5f3a0;--syn-cm:#666680;
+  --syn-num:#fbbf24;--syn-op:#f472b6;--syn-var:#c4b5fd;--syn-cls:#60a5fa;--syn-tbl:#ff9f43;
+}
+[data-theme="light"]{
+  --cyan:#0e7490;--magenta:#a8246b;--violet:#6d4aad;--green:#1a7a52;--orange:#b45309;--yellow:#d97706;
+  --bg:#f5f3f0;--card-bg:rgba(255,255,255,0.78);--glass-border:rgba(109,74,173,0.15);
+  --text:#2e2b35;--text-muted:#6b6879;--text-heading:#1e1b25;--nav-bg:rgba(245,243,240,0.94);
+  --code-bg:#1e1b28;--code-text:#c8c8e0;--code-border:rgba(109,74,173,0.2);
+  --code-header-bg:rgba(109,74,173,0.08);--code-header-border:rgba(109,74,173,0.12);
+  --table-header-bg:rgba(109,74,173,0.07);--table-row-hover:rgba(14,116,144,0.04);
+  --table-row-border:rgba(109,74,173,0.06);--tip-bg:rgba(14,116,144,0.06);
+  --tip-warn-bg:rgba(168,36,107,0.06);--tip-green-bg:rgba(26,122,82,0.06);
+  --gradient-1:linear-gradient(135deg,#0e7490,#6d4aad);
+  --gradient-2:linear-gradient(135deg,#a8246b,#6d4aad);
+  --gradient-3:linear-gradient(135deg,#0e7490,#a8246b);
+  --glow-cyan:rgba(14,116,144,0.04);--glow-magenta:rgba(168,36,107,0.03);--glow-violet:rgba(109,74,173,0.03);
+  --grid-line:rgba(109,74,173,0.3);--grid-opacity:.02;--scrollbar-track:#f5f3f0;
+  --shadow-card:0 4px 20px rgba(0,0,0,0.06);--nav-link-hover:rgba(14,116,144,0.08);
+  --formula-bg:rgba(14,116,144,0.05);--formula-border:rgba(14,116,144,0.2);
+  --math-bg:rgba(109,74,173,0.05);--math-border:rgba(109,74,173,0.2);
+  --tag-a-bg:rgba(14,116,144,0.1);--tag-a-border:rgba(14,116,144,0.2);
+  --tag-b-bg:rgba(168,36,107,0.1);--tag-b-border:rgba(168,36,107,0.2);
+  --tag-c-bg:rgba(109,74,173,0.1);--tag-c-border:rgba(109,74,173,0.2);
+  --tag-d-bg:rgba(26,122,82,0.1);--tag-d-border:rgba(26,122,82,0.2);
+  --db-cell:rgba(255,255,255,0.9);--db-border:rgba(109,74,173,0.3);--db-head:rgba(109,74,173,0.12);
+  --join-left:rgba(14,116,144,0.12);--join-right:rgba(168,36,107,0.12);--join-both:rgba(109,74,173,0.2);
+  --syn-kw:#ff79c6;--syn-fn:#50e3f5;--syn-str:#a5f3a0;--syn-cm:#666680;
+  --syn-num:#fbbf24;--syn-op:#f472b6;--syn-var:#c4b5fd;--syn-cls:#60a5fa;--syn-tbl:#d97706;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text);line-height:1.75;overflow-x:hidden;-webkit-text-size-adjust:100%;transition:background .4s,color .4s;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 900px 600px at 15% 20%,var(--glow-cyan) 0%,transparent 70%),
+    radial-gradient(ellipse 800px 500px at 85% 70%,var(--glow-magenta) 0%,transparent 70%),
+    radial-gradient(ellipse 600px 600px at 50% 50%,var(--glow-violet) 0%,transparent 70%);
+  transition:background .4s;}
+.grid-overlay{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:var(--grid-opacity);
+  background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+  background-size:60px 60px;transition:opacity .4s;}
+::-webkit-scrollbar{width:6px;height:4px;}::-webkit-scrollbar-track{background:var(--scrollbar-track);}
+::-webkit-scrollbar-thumb{background:var(--gradient-1);border-radius:3px;}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);padding:.8rem var(--container-px);display:flex;align-items:center;gap:1rem;transition:background .4s,border-color .4s;}
+nav .logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.1rem;background:var(--gradient-3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;white-space:nowrap;flex-shrink:0;}
+.nav-toggle{display:none;background:none;border:none;cursor:pointer;width:32px;height:24px;position:relative;flex-shrink:0;}
+.nav-toggle span{display:block;position:absolute;left:0;right:0;height:2px;background:var(--cyan);border-radius:2px;transition:all .3s;}
+.nav-toggle span:nth-child(1){top:2px;}.nav-toggle span:nth-child(2){top:11px;}.nav-toggle span:nth-child(3){top:20px;}
+.nav-toggle.active span:nth-child(1){top:11px;transform:rotate(45deg);}
+.nav-toggle.active span:nth-child(2){opacity:0;}
+.nav-toggle.active span:nth-child(3){top:11px;transform:rotate(-45deg);}
+.nav-right{display:flex;align-items:center;gap:1rem;margin-left:auto;}
+nav ul{list-style:none;display:flex;gap:.3rem;flex-wrap:wrap;}
+nav a{color:var(--text-muted);text-decoration:none;font-size:.78rem;padding:.35rem .7rem;border-radius:6px;transition:all .3s;font-weight:500;letter-spacing:.3px;white-space:nowrap;}
+nav a:hover{color:var(--cyan);background:var(--nav-link-hover);}
+.theme-toggle{position:relative;width:48px;height:26px;background:var(--glass-border);border:1px solid var(--glass-border);border-radius:50px;cursor:pointer;flex-shrink:0;transition:background .3s;display:flex;align-items:center;}
+.theme-toggle::before{content:'';position:absolute;left:3px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--cyan);transition:left .3s,background .3s;box-shadow:0 0 6px var(--cyan);}
+[data-theme="light"] .theme-toggle::before{left:25px;background:var(--violet);box-shadow:0 0 6px rgba(109,74,173,.4);}
+.theme-toggle .toggle-icon{position:absolute;font-size:.7rem;transition:opacity .3s;line-height:1;}
+.theme-toggle .icon-moon{left:6px;opacity:1;}.theme-toggle .icon-sun{right:5px;opacity:.4;}
+[data-theme="light"] .theme-toggle .icon-moon{opacity:.4;}[data-theme="light"] .theme-toggle .icon-sun{opacity:1;}
+/* LAYOUT */
+.container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:6rem var(--container-px) var(--sp-2xl);}
+/* HERO */
+.hero{text-align:center;padding:var(--sp-2xl) 0 var(--sp-xl);animation:fadeUp .8s ease-out;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.hero-badge{display:inline-block;font-family:'Fira Code',monospace;font-size:clamp(.6rem,2vw,.75rem);padding:.4rem 1.2rem;border-radius:50px;border:1px solid var(--glass-border);background:var(--tip-bg);color:var(--cyan);letter-spacing:1px;margin-bottom:var(--sp-md);text-transform:uppercase;}
+.hero h1{font-family:'Orbitron',sans-serif;font-size:clamp(1.6rem,5vw,3.4rem);font-weight:900;line-height:1.2;background:var(--gradient-3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:var(--sp-sm);}
+.hero p{font-size:clamp(.9rem,2.5vw,1.1rem);color:var(--text-muted);max-width:700px;margin:0 auto;}
+section{margin-bottom:var(--sp-2xl);animation:fadeUp .6s ease-out both;}
+section h2{font-family:'Orbitron',sans-serif;font-size:clamp(1.15rem,3.5vw,1.6rem);font-weight:700;margin-bottom:var(--sp-md);padding-bottom:.8rem;border-bottom:2px solid;border-image:var(--gradient-1) 1;letter-spacing:1px;color:var(--text-heading);}
+section h2 .emoji{margin-right:.5rem;}
+section h3{font-family:'Orbitron',sans-serif;font-size:clamp(.9rem,2.5vw,1.1rem);font-weight:600;color:var(--cyan);margin:var(--sp-lg) 0 var(--sp-sm);letter-spacing:.5px;}
+section h4{font-size:1rem;font-weight:600;color:var(--magenta);margin:var(--sp-md) 0 .8rem;}
+p{margin-bottom:var(--sp-sm);}
+/* CARDS */
+.glass-card{background:var(--card-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--glass-border);border-radius:var(--card-radius);padding:var(--card-px);margin-bottom:var(--sp-lg);transition:border-color .3s,box-shadow .3s,background .4s;}
+.glass-card:hover{border-color:rgba(0,240,255,.3);box-shadow:var(--shadow-card);}
+[data-theme="light"] .glass-card:hover{border-color:rgba(109,74,173,.3);}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-md);margin:var(--sp-md) 0;}
+.compare-card{background:var(--card-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--glass-border);border-radius:14px;padding:var(--sp-md);position:relative;overflow:hidden;transition:background .4s,border-color .4s;}
+.compare-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.compare-card.a::before{background:linear-gradient(135deg,var(--cyan),var(--violet));}
+.compare-card.b::before{background:linear-gradient(135deg,var(--magenta),var(--violet));}
+.compare-card.c::before{background:linear-gradient(135deg,var(--violet),var(--cyan));}
+.compare-card.d::before{background:linear-gradient(135deg,var(--green),var(--cyan));}
+.compare-card .tag{font-family:'Fira Code',monospace;font-size:.7rem;font-weight:600;padding:.25rem .8rem;border-radius:20px;display:inline-block;margin-bottom:var(--sp-sm);text-transform:uppercase;letter-spacing:1px;}
+.compare-card.a .tag{background:var(--tag-a-bg);color:var(--cyan);border:1px solid var(--tag-a-border);}
+.compare-card.b .tag{background:var(--tag-b-bg);color:var(--magenta);border:1px solid var(--tag-b-border);}
+.compare-card.c .tag{background:var(--tag-c-bg);color:var(--violet);border:1px solid var(--tag-c-border);}
+.compare-card.d .tag{background:var(--tag-d-bg);color:var(--green);border:1px solid var(--tag-d-border);}
+/* CODE */
+.code-block{position:relative;margin:var(--sp-md) 0;border-radius:12px;overflow:hidden;border:1px solid var(--code-border);}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:.6rem 1rem;background:var(--code-header-bg);border-bottom:1px solid var(--code-header-border);font-family:'Fira Code',monospace;font-size:clamp(.6rem,1.8vw,.72rem);color:var(--violet);letter-spacing:.5px;gap:.5rem;}
+.lang-tag{padding:.15rem .6rem;border-radius:10px;font-size:.65rem;font-weight:600;text-transform:uppercase;flex-shrink:0;}
+.lang-tag.sql{background:rgba(251,191,36,.15);color:var(--yellow);}
+.lang-tag.node{background:rgba(0,255,157,.12);color:var(--green);}
+.lang-tag.bash{background:rgba(255,159,67,.12);color:var(--orange);}
+.lang-tag.php{background:rgba(139,92,246,.15);color:var(--violet);}
+pre{background:var(--code-bg);padding:var(--sp-sm) var(--sp-md);overflow-x:auto;-webkit-overflow-scrolling:touch;font-family:'Fira Code',monospace;font-size:clamp(.68rem,1.8vw,.82rem);line-height:1.8;color:var(--code-text);scrollbar-width:thin;}
+pre code{font-family:inherit;}
+.kw{color:var(--syn-kw);}.fn{color:var(--syn-fn);}.str{color:var(--syn-str);}
+.cm{color:var(--syn-cm);font-style:italic;}.num{color:var(--syn-num);}
+.op{color:var(--syn-op);}.var{color:var(--syn-var);}.cls{color:var(--syn-cls);}.tbl{color:var(--syn-tbl);}
+/* FORMULA */
+.formula-block{background:var(--formula-bg);border:1px solid var(--formula-border);border-radius:12px;padding:1.2rem 1.5rem;margin:var(--sp-md) 0;position:relative;overflow:hidden;}
+.formula-block::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gradient-1);}
+.formula-block .formula-title{font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--violet);text-transform:uppercase;letter-spacing:1px;margin-bottom:.6rem;}
+.formula-block .formula-main{font-size:clamp(.82rem,2.2vw,1rem);color:var(--cyan);line-height:2.1;font-family:'Fira Code',monospace;text-align:center;}
+.formula-block .formula-legend{font-size:.75rem;color:var(--text-muted);margin-top:.6rem;line-height:1.8;}
+.formula-block .formula-legend span{color:var(--magenta);}
+/* TIPS */
+.tip-box{border-left:3px solid var(--cyan);background:var(--tip-bg);padding:var(--sp-sm) var(--sp-md);border-radius:0 12px 12px 0;margin:var(--sp-md) 0;}
+.tip-box.warning{border-left-color:var(--magenta);background:var(--tip-warn-bg);}
+.tip-box.success{border-left-color:var(--green);background:var(--tip-green-bg);}
+.tip-box .tip-title{font-family:'Orbitron',sans-serif;font-size:.78rem;color:var(--cyan);margin-bottom:.4rem;letter-spacing:1px;text-transform:uppercase;}
+.tip-box.warning .tip-title{color:var(--magenta);}
+.tip-box.success .tip-title{color:var(--green);}
+/* DB TABLE VIZ */
+.db-table{border-collapse:separate;border-spacing:0;margin:var(--sp-md) auto;border-radius:10px;overflow:hidden;border:1px solid var(--db-border);min-width:280px;}
+.db-table caption{font-family:'Orbitron',sans-serif;font-size:.7rem;color:var(--orange);text-transform:uppercase;letter-spacing:1px;padding:.5rem;background:rgba(255,159,67,.08);border-bottom:1px solid var(--db-border);}
+.db-table th{background:var(--db-head);font-family:'Fira Code',monospace;font-size:.72rem;color:var(--violet);padding:.5rem .8rem;text-align:left;border-bottom:1px solid var(--db-border);}
+.db-table td{background:var(--db-cell);font-family:'Fira Code',monospace;font-size:.78rem;color:var(--text);padding:.4rem .8rem;border-bottom:1px solid rgba(139,92,246,.08);}
+.db-table tr:last-child td{border-bottom:none;}
+.db-table .pk{color:var(--yellow);font-weight:700;}
+.db-table .fk{color:var(--cyan);}
+.db-table .null-val{color:var(--text-muted);font-style:italic;}
+/* DB SCHEMA */
+.schema-container{display:flex;gap:var(--sp-md);flex-wrap:wrap;justify-content:center;margin:var(--sp-md) 0;}
+.schema-table{background:var(--card-bg);border:1px solid var(--db-border);border-radius:10px;overflow:hidden;min-width:180px;}
+.schema-table .schema-title{background:var(--db-head);font-family:'Orbitron',sans-serif;font-size:.65rem;color:var(--orange);text-transform:uppercase;letter-spacing:1px;padding:.5rem .8rem;border-bottom:1px solid var(--db-border);}
+.schema-col{font-family:'Fira Code',monospace;font-size:.72rem;padding:.35rem .8rem;border-bottom:1px solid rgba(139,92,246,.06);display:flex;gap:.5rem;align-items:center;}
+.schema-col:last-child{border-bottom:none;}
+.schema-col .col-name{color:var(--text);}
+.schema-col .col-type{color:var(--text-muted);font-size:.65rem;}
+.schema-col .badge-pk{background:rgba(251,191,36,.2);color:var(--yellow);font-size:.55rem;padding:.1rem .35rem;border-radius:4px;font-weight:700;}
+.schema-col .badge-fk{background:rgba(0,240,255,.15);color:var(--cyan);font-size:.55rem;padding:.1rem .35rem;border-radius:4px;}
+.schema-arrow{align-self:center;color:var(--text-muted);font-size:1.5rem;flex-shrink:0;}
+/* JOIN VIZ */
+.join-diagram{display:flex;align-items:center;justify-content:center;gap:0;margin:var(--sp-md) 0;}
+.join-circle{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:.5px;flex-shrink:0;}
+.join-circle.left{background:var(--join-left);border:2px solid var(--cyan);color:var(--cyan);margin-right:-20px;z-index:1;}
+.join-circle.right{background:var(--join-right);border:2px solid var(--magenta);color:var(--magenta);margin-left:-20px;}
+.join-overlap{width:40px;height:80px;background:var(--join-both);z-index:2;}
+/* PIPELINE */
+.pipeline{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:var(--sp-sm);margin:var(--sp-lg) 0;}
+.pipeline-step{background:var(--card-bg);border:1px solid var(--glass-border);border-radius:12px;padding:var(--sp-sm);text-align:center;transition:all .3s;}
+.pipeline-step:hover{border-color:var(--cyan);transform:translateY(-3px);box-shadow:0 8px 25px rgba(0,240,255,.1);}
+.pipeline-step .step-num{font-family:'Orbitron',sans-serif;font-size:.6rem;color:var(--magenta);letter-spacing:1px;margin-bottom:.3rem;}
+.pipeline-step .step-title{font-weight:600;font-size:clamp(.75rem,2vw,.85rem);color:var(--cyan);}
+.pipeline-step .step-desc{font-size:clamp(.65rem,1.5vw,.72rem);color:var(--text-muted);margin-top:.2rem;}
+/* ALGO TABLE */
+.algo-table{width:100%;border-collapse:separate;border-spacing:0;margin:var(--sp-md) 0;border-radius:12px;overflow:hidden;border:1px solid var(--glass-border);}
+.algo-table thead{background:var(--table-header-bg);}
+.algo-table th{font-family:'Orbitron',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:1px;padding:.8rem 1rem;text-align:left;color:var(--violet);border-bottom:1px solid var(--glass-border);}
+.algo-table td{padding:.8rem 1rem;font-size:.88rem;border-bottom:1px solid var(--table-row-border);vertical-align:top;}
+.algo-table tbody tr{background:var(--card-bg);transition:background .2s;}
+.algo-table tbody tr:hover{background:var(--table-row-hover);}
+.algo-table tbody tr:last-child td{border-bottom:none;}
+/* JOIN CARDS */
+.join-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--sp-md);margin:var(--sp-md) 0;}
+.join-card{background:var(--card-bg);border:1px solid var(--glass-border);border-radius:14px;padding:var(--sp-md);position:relative;overflow:hidden;transition:border-color .3s;}
+.join-card:hover{border-color:rgba(0,240,255,.3);}
+.join-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.join-card.inner::before{background:linear-gradient(90deg,var(--cyan),var(--violet));}
+.join-card.left::before{background:linear-gradient(90deg,var(--magenta),var(--violet));}
+.join-card.right::before{background:linear-gradient(90deg,var(--violet),var(--magenta));}
+.join-card.full::before{background:linear-gradient(90deg,var(--cyan),var(--magenta));}
+.join-card .join-name{font-family:'Orbitron',sans-serif;font-size:.82rem;font-weight:700;margin-bottom:.4rem;}
+.join-card.inner .join-name{color:var(--cyan);}
+.join-card.left .join-name{color:var(--magenta);}
+.join-card.right .join-name{color:var(--violet);}
+.join-card.full .join-name{color:var(--green);}
+.join-card .join-desc{font-size:.82rem;color:var(--text-muted);margin-bottom:.6rem;}
+.join-card .join-viz{display:flex;align-items:center;justify-content:center;gap:0;margin:.5rem 0;}
+.jc{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-family:'Fira Code',monospace;}
+.jc.l{border:2px solid var(--cyan);background:rgba(0,240,255,.08);color:var(--cyan);}
+.jc.r{border:2px solid var(--magenta);background:rgba(255,0,229,.08);color:var(--magenta);}
+.jc.m{width:24px;height:36px;border-radius:0;}
+.jc.m.hi{background:rgba(139,92,246,.4);}
+.jc.m.lo{background:rgba(139,92,246,.08);}
+.jc.l.hi{background:rgba(0,240,255,.3);}
+.jc.r.hi{background:rgba(255,0,229,.3);}
+/* MISC */
+ul,ol{margin:.8rem 0 1.2rem 1.5rem;}li{margin-bottom:.5rem;color:var(--text);}li::marker{color:var(--violet);}
+strong{color:var(--cyan);font-weight:600;}em{color:var(--text-muted);}
+code:not(pre code){font-family:'Fira Code',monospace;font-size:.85em;background:var(--code-header-bg);padding:.15em .4em;border-radius:4px;color:var(--violet);}
+footer{text-align:center;padding:var(--sp-xl) 0 var(--sp-lg);border-top:1px solid var(--glass-border);color:var(--text-muted);font-size:.82rem;}
+footer span{background:var(--gradient-3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:600;}
+.fade-section{opacity:0;transform:translateY(25px);transition:opacity .7s,transform .7s;}
+.fade-section.visible{opacity:1;transform:translateY(0);}
+@media(max-width:900px){:root{--container-px:1.5rem;--card-px:1.5rem;--sp-2xl:3rem;}
+  .compare-grid{grid-template-columns:1fr;}.join-grid{grid-template-columns:1fr 1fr;}
+  .algo-table th,.algo-table td{padding:.7rem .8rem;font-size:.82rem;}.algo-table th{font-size:.65rem;}
+  .schema-container{gap:var(--sp-sm);}}
+@media(max-width:640px){
+  :root{--container-px:1rem;--card-px:1.1rem;--card-radius:12px;--sp-sm:.75rem;--sp-md:1rem;--sp-lg:1.5rem;--sp-xl:2rem;--sp-2xl:2.5rem;}
+  body{line-height:1.65;}.nav-toggle{display:block;}
+  nav{flex-wrap:wrap;padding:.7rem var(--container-px);gap:0;}
+  nav .logo{margin-right:auto;}.nav-right{gap:.6rem;}
+  nav ul{display:none;width:100%;flex-direction:column;padding-top:.8rem;gap:.15rem;order:10;}
+  nav ul.open{display:flex;}nav a{font-size:.85rem;padding:.6rem .8rem;border-radius:8px;display:block;}
+  .hero{padding:var(--sp-xl) 0 var(--sp-lg);}.hero-badge{padding:.3rem .9rem;font-size:.58rem;}.hero p{font-size:.92rem;}
+  .glass-card{margin-left:-.25rem;margin-right:-.25rem;}
+  .compare-card{padding:var(--sp-sm);border-radius:10px;}
+  .code-block{margin-left:calc(var(--card-px)*-1);margin-right:calc(var(--card-px)*-1);border-radius:0;border-left:none;border-right:none;}
+  .code-header{padding:.5rem .8rem;font-size:.6rem;}pre{padding:.8rem;font-size:.68rem;line-height:1.7;tab-size:2;}
+  .join-grid{grid-template-columns:1fr;}.pipeline{grid-template-columns:1fr 1fr;gap:.6rem;}
+  .schema-container{flex-direction:column;align-items:center;}
+  .algo-table,.algo-table thead,.algo-table tbody,.algo-table th,.algo-table td,.algo-table tr{display:block;}
+  .algo-table{border:none;border-radius:0;background:none;}.algo-table thead{display:none;}
+  .algo-table tbody tr{background:var(--card-bg);border:1px solid var(--glass-border);border-radius:12px;margin-bottom:.8rem;padding:.6rem 0;display:block;overflow:hidden;}
+  .algo-table tbody tr:last-child{margin-bottom:0;}
+  .algo-table td{display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem;padding:.55rem 1rem;font-size:.82rem;border-bottom:1px solid var(--table-row-border);text-align:right;}
+  .algo-table td::before{content:attr(data-label);font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:600;color:var(--violet);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;text-align:left;padding-top:.15rem;min-width:5rem;}
+  .algo-table tbody tr:hover{background:var(--card-bg);}
+  section{margin-bottom:var(--sp-xl);}footer{padding:var(--sp-lg) 0;font-size:.78rem;}}
+@media(max-width:380px){:root{--container-px:.75rem;--card-px:.8rem;}
+  .hero h1{font-size:1.4rem;}nav .logo{font-size:.9rem;letter-spacing:1px;}
+  pre{font-size:.62rem;padding:.6rem;line-height:1.6;}.pipeline{grid-template-columns:1fr;}
+  .algo-table td{flex-direction:column;text-align:left;gap:.2rem;padding:.5rem .8rem;}
+  .algo-table td::before{margin-bottom:.1rem;}}
+@media(min-width:1200px){:root{--container-px:3rem;--card-px:2.5rem;}}
+@media(hover:none){.glass-card:hover{border-color:var(--glass-border);box-shadow:none;}.pipeline-step:hover{transform:none;box-shadow:none;border-color:var(--glass-border);}}
+@media print{body::before,.grid-overlay,nav{display:none;}.container{padding:1rem;}.glass-card{border:1px solid #333;backdrop-filter:none;}.fade-section{opacity:1;transform:none;}pre{white-space:pre-wrap;word-break:break-all;}}
+</style>
+</head>
+<body>
+<div class="grid-overlay"></div>
+<nav>
+  <div class="logo">SQL:DB</div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle" aria-label="Basculer le thème">
+      <span class="toggle-icon icon-moon">🌙</span>
+      <span class="toggle-icon icon-sun">☀️</span>
+    </button>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <ul id="nav-menu">
+    <li><a href="#intro">Intro</a></li>
+    <li><a href="#bases">Bases SQL</a></li>
+    <li><a href="#select">SELECT</a></li>
+    <li><a href="#filtres">Filtres</a></li>
+    <li><a href="#jointures">Jointures</a></li>
+    <li><a href="#agregats">Agrégats</a></li>
+    <li><a href="#crud">CRUD</a></li>
+    <li><a href="#schema">Schéma</a></li>
+    <li><a href="#index">Index</a></li>
+    <li><a href="#transactions">Transactions</a></li>
+    <li><a href="#node">Node.js + MySQL</a></li>
+    <li><a href="#securite">Sécurité</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+<div class="hero">
+  <div class="hero-badge">Débutant → Confirmé • MySQL • Jointures • Index • Node.js</div>
+  <h1>SQL &amp; MySQL</h1>
+  <p>Des premières requêtes SELECT aux jointures complexes, en passant par les index, les transactions et l'intégration avec Node.js et PHP. La base de données de 90% des projets web.</p>
+</div>
+
+<!-- ══ 1. INTRO ══ -->
+<section id="intro" class="fade-section">
+  <h2><span class="emoji">🗄️</span> 1 — Pourquoi SQL ?</h2>
+  <div class="glass-card">
+    <p>SQL (Structured Query Language) est le langage qui permet de <strong>parler à une base de données relationnelle</strong>. MySQL, PostgreSQL, SQLite, MariaDB — tous comprennent SQL. C'est le standard depuis 50 ans, et ça ne changera pas de sitôt.</p>
+
+    <div class="compare-grid">
+      <div class="compare-card a">
+        <div class="tag">Sans base de données</div>
+        <ul>
+          <li>Données perdues à chaque redémarrage</li>
+          <li>Impossible de chercher/filtrer efficacement</li>
+          <li>Pas de relations entre les données</li>
+          <li>Un seul utilisateur à la fois</li>
+        </ul>
+      </div>
+      <div class="compare-card b">
+        <div class="tag">Avec MySQL</div>
+        <ul>
+          <li>Persistance garantie sur disque</li>
+          <li>Recherche et tri en millisecondes sur des millions de lignes</li>
+          <li>Relations entre tables (users ↔ commandes ↔ produits)</li>
+          <li>Des milliers de connexions simultanées</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Installer MySQL et s'y connecter</h3>
+    <div class="code-block">
+      <div class="code-header">Installation + connexion<span class="lang-tag bash">BASH</span></div>
+      <pre><code><span class="cm"># Ubuntu/Debian</span>
+sudo apt install mysql-server
+sudo mysql_secure_installation
+
+<span class="cm"># macOS (Homebrew)</span>
+brew install mysql
+brew services start mysql
+
+<span class="cm"># Se connecter en ligne de commande</span>
+mysql -u root -p
+
+<span class="cm"># Ou avec un client graphique :</span>
+<span class="cm"># TablePlus, DBeaver, phpMyAdmin, MySQL Workbench</span></code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">Premières commandes MySQL<span class="lang-tag sql">SQL</span></div>
+      <pre><code><span class="cm">-- Créer et sélectionner une base</span>
+<span class="kw">CREATE DATABASE</span> boutique <span class="kw">CHARACTER SET</span> utf8mb4 <span class="kw">COLLATE</span> utf8mb4_unicode_ci;
+<span class="kw">USE</span> boutique;
+
+<span class="cm">-- Voir les bases disponibles</span>
+<span class="kw">SHOW DATABASES</span>;
+
+<span class="cm">-- Voir les tables d'une base</span>
+<span class="kw">SHOW TABLES</span>;
+
+<span class="cm">-- Voir la structure d'une table</span>
+<span class="kw">DESCRIBE</span> <span class="tbl">utilisateurs</span>;
+<span class="cm">-- ou</span>
+<span class="kw">SHOW COLUMNS FROM</span> <span class="tbl">utilisateurs</span>;</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 2. BASES SQL ══ -->
+<section id="bases" class="fade-section">
+  <h2><span class="emoji">🏗️</span> 2 — Créer des Tables (DDL)</h2>
+  <div class="glass-card">
+    <p>DDL = Data Definition Language. Ce sont les commandes qui définissent la <strong>structure</strong> de la base : CREATE, ALTER, DROP.</p>
+
+    <h3>Types de données essentiels</h3>
+    <table class="algo-table">
+      <thead><tr><th>Type</th><th>Usage</th><th>Exemple</th></tr></thead>
+      <tbody>
+        <tr><td data-label="Type"><code>INT</code> / <code>BIGINT</code></td><td data-label="Usage">Entiers — IDs, compteurs, quantités</td><td data-label="Exemple"><code>id INT AUTO_INCREMENT</code></td></tr>
+        <tr><td data-label="Type"><code>VARCHAR(n)</code></td><td data-label="Usage">Texte variable jusqu'à n caractères</td><td data-label="Exemple"><code>nom VARCHAR(100)</code></td></tr>
+        <tr><td data-label="Type"><code>TEXT</code></td><td data-label="Usage">Texte long sans limite fixe</td><td data-label="Exemple"><code>description TEXT</code></td></tr>
+        <tr><td data-label="Type"><code>DECIMAL(p,s)</code></td><td data-label="Usage">Prix, montants — précision exacte</td><td data-label="Exemple"><code>prix DECIMAL(10,2)</code></td></tr>
+        <tr><td data-label="Type"><code>BOOLEAN</code></td><td data-label="Usage">Vrai/faux (stocké en TINYINT 0/1)</td><td data-label="Exemple"><code>actif BOOLEAN DEFAULT TRUE</code></td></tr>
+        <tr><td data-label="Type"><code>DATETIME</code></td><td data-label="Usage">Date + heure précise</td><td data-label="Exemple"><code>cree_le DATETIME</code></td></tr>
+        <tr><td data-label="Type"><code>TIMESTAMP</code></td><td data-label="Usage">Horodatage auto (fuseau UTC)</td><td data-label="Exemple"><code>updated_at TIMESTAMP</code></td></tr>
+        <tr><td data-label="Type"><code>ENUM</code></td><td data-label="Usage">Valeur parmi une liste fixe</td><td data-label="Exemple"><code>role ENUM('admin','user','guest')</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Créer une table complète</h3>
+    <div class="code-block">
+      <div class="code-header">CREATE TABLE — structure réaliste<span class="lang-tag sql">SQL</span></div>
+      <pre><code><span class="kw">CREATE TABLE</span> <span class="tbl">utilisateurs</span> (
+  <span class="cm">-- Clé primaire auto-incrémentée</span>
+  <span class="var">id</span>          <span class="cls">INT</span> <span class="kw">UNSIGNED NOT NULL AUTO_INCREMENT</span>,
+  <span class="var">nom</span>         <span class="cls">VARCHAR</span>(<span class="num">100</span>) <span class="kw">NOT NULL</span>,
+  <span class="var">email</span>       <span class="cls">VARCHAR</span>(<span class="num">255</span>) <span class="kw">NOT NULL UNIQUE</span>,
+  <span class="var">mot_de_passe</span> <span class="cls">VARCHAR</span>(<span class="num">255</span>) <span class="kw">NOT NULL</span>,
+  <span class="var">role</span>        <span class="cls">ENUM</span>(<span class="str">'admin'</span>, <span class="str">'user'</span>, <span class="str">'guest'</span>) <span class="kw">NOT NULL DEFAULT</span> <span class="str">'user'</span>,
+  <span class="var">actif</span>       <span class="cls">BOOLEAN</span> <span class="kw">NOT NULL DEFAULT</span> <span class="kw">TRUE</span>,
+  <span class="var">cree_le</span>     <span class="cls">TIMESTAMP</span> <span class="kw">NOT NULL DEFAULT</span> <span class="fn">CURRENT_TIMESTAMP</span>,
+  <span class="var">modifie_le</span>  <span class="cls">TIMESTAMP</span> <span class="kw">NOT NULL DEFAULT</span> <span class="fn">CURRENT_TIMESTAMP</span> <span class="kw">ON UPDATE</span> <span class="fn">CURRENT_TIMESTAMP</span>,
+
+  <span class="kw">PRIMARY KEY</span> (<span class="var">id</span>),
+  <span class="kw">INDEX</span> <span class="var">idx_email</span> (<span class="var">email</span>)   <span class="cm">-- index pour recherches rapides par email</span>
+) <span class="kw">ENGINE</span>=InnoDB <span class="kw">DEFAULT CHARSET</span>=utf8mb4;
+
+<span class="cm">-- Table commandes avec clé étrangère</span>
+<span class="kw">CREATE TABLE</span> <span class="tbl">commandes</span> (
+  <span class="var">id</span>           <span class="cls">INT</span> <span class="kw">UNSIGNED NOT NULL AUTO_INCREMENT</span>,
+  <span class="var">utilisateur_id</span> <span class="cls">INT</span> <span class="kw">UNSIGNED NOT NULL</span>,
+  <span class="var">total</span>        <span class="cls">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>) <span class="kw">NOT NULL</span>,
+  <span class="var">statut</span>       <span class="cls">ENUM</span>(<span class="str">'en_attente'</span>,<span class="str">'confirmee'</span>,<span class="str">'livree'</span>,<span class="str">'annulee'</span>) <span class="kw">DEFAULT</span> <span class="str">'en_attente'</span>,
+  <span class="var">cree_le</span>      <span class="cls">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="fn">CURRENT_TIMESTAMP</span>,
+
+  <span class="kw">PRIMARY KEY</span> (<span class="var">id</span>),
+  <span class="cm">-- Clé étrangère : utilisateur_id → utilisateurs.id</span>
+  <span class="kw">FOREIGN KEY</span> (<span class="var">utilisateur_id</span>) <span class="kw">REFERENCES</span> <span class="tbl">utilisateurs</span>(<span class="var">id</span>)
+    <span class="kw">ON DELETE CASCADE</span>   <span class="cm">-- si user supprimé → ses commandes aussi</span>
+    <span class="kw">ON UPDATE CASCADE</span>
+) <span class="kw">ENGINE</span>=InnoDB;
+
+<span class="cm">-- Modifier une table existante</span>
+<span class="kw">ALTER TABLE</span> <span class="tbl">utilisateurs</span> <span class="kw">ADD COLUMN</span> <span class="var">avatar_url</span> <span class="cls">VARCHAR</span>(<span class="num">500</span>) <span class="kw">NULL</span>;
+<span class="kw">ALTER TABLE</span> <span class="tbl">utilisateurs</span> <span class="kw">MODIFY COLUMN</span> <span class="var">nom</span> <span class="cls">VARCHAR</span>(<span class="num">150</span>) <span class="kw">NOT NULL</span>;
+<span class="kw">ALTER TABLE</span> <span class="tbl">utilisateurs</span> <span class="kw">DROP COLUMN</span> <span class="var">avatar_url</span>;</code></pre>
+    </div>
+
+    <div class="tip-box warning">
+      <div class="tip-title">⚠️ ON DELETE CASCADE — attention</div>
+      <p><code>ON DELETE CASCADE</code> supprime automatiquement les enregistrements liés. Si tu supprimes un utilisateur, toutes ses commandes disparaissent aussi. C'est parfois voulu (commentaires, sessions) et parfois catastrophique (données comptables). L'alternative est <code>ON DELETE SET NULL</code> ou <code>RESTRICT</code> (bloque la suppression).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 3. SELECT ══ -->
+<section id="select" class="fade-section">
+  <h2><span class="emoji">🔍</span> 3 — SELECT — Lire des Données</h2>
+  <div class="glass-card">
+    <p>Le <code>SELECT</code> est la requête la plus utilisée. Son ordre d'exécution logique est différent de l'ordre d'écriture — comprendre ça évite beaucoup de confusion.</p>
+
+    <div class="formula-block">
+      <div class="formula-title">Ordre d'exécution logique d'un SELECT</div>
+      <div class="formula-main" style="font-size:.8rem;text-align:left;line-height:2.3;padding:0 .5rem;">
+        1. <span style="color:var(--syn-kw);">FROM</span> &amp; <span style="color:var(--syn-kw);">JOIN</span> &nbsp;— quelles tables ?<br>
+        2. <span style="color:var(--syn-kw);">WHERE</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;— filtrer les lignes<br>
+        3. <span style="color:var(--syn-kw);">GROUP BY</span> &nbsp;&nbsp;&nbsp;&nbsp;— regrouper<br>
+        4. <span style="color:var(--syn-kw);">HAVING</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;— filtrer les groupes<br>
+        5. <span style="color:var(--syn-kw);">SELECT</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;— quelles colonnes ?<br>
+        6. <span style="color:var(--syn-kw);">ORDER BY</span> &nbsp;&nbsp;&nbsp;&nbsp;— trier<br>
+        7. <span style="color:var(--syn-kw);">LIMIT</span> / <span style="color:var(--syn-kw);">OFFSET</span> — paginer
+      </div>
+      <div class="formula-legend">L'ordre d'<span>écriture</span> SQL ne reflète pas l'ordre d'<span>exécution</span>. <code>WHERE</code> s'exécute avant <code>SELECT</code> — c'est pourquoi on ne peut pas utiliser un alias de SELECT dans un WHERE.</div>
+    </div>
+
+    <h3>Données d'exemple — notre boutique</h3>
+    <div style="display:flex;gap:var(--sp-md);flex-wrap:wrap;justify-content:center;margin:var(--sp-md) 0;">
+      <table class="db-table">
+        <caption>utilisateurs</caption>
+        <tr><th>id</th><th>nom</th><th>email</th><th>role</th></tr>
+        <tr><td class="pk">1</td><td>Alice</td><td>alice@mail.fr</td><td>admin</td></tr>
+        <tr><td class="pk">2</td><td>Bob</td><td>bob@mail.fr</td><td>user</td></tr>
+        <tr><td class="pk">3</td><td>Clara</td><td>clara@mail.fr</td><td>user</td></tr>
+        <tr><td class="pk">4</td><td>David</td><td>david@mail.fr</td><td>guest</td></tr>
+      </table>
+      <table class="db-table">
+        <caption>commandes</caption>
+        <tr><th>id</th><th>user_id</th><th>total</th><th>statut</th></tr>
+        <tr><td class="pk">1</td><td class="fk">1</td><td>89.99</td><td>livree</td></tr>
+        <tr><td class="pk">2</td><td class="fk">2</td><td>45.00</td><td>confirmee</td></tr>
+        <tr><td class="pk">3</td><td class="fk">2</td><td>120.50</td><td>livree</td></tr>
+        <tr><td class="pk">4</td><td class="fk">3</td><td>15.00</td><td>en_attente</td></tr>
+      </table>
+      <table class="db-table">
+        <caption>produits</caption>
+        <tr><th>id</th><th>nom</th><th>prix</th><th>stock</th></tr>
+        <tr><td class="pk">1</td><td>T-shirt</td><td>25.00</td><td>100</td></tr>
+        <tr><td class="pk">2</td><td>Jean</td><td>59.99</td><td>50</td></tr>
+        <tr><td class="pk">3</td><td>Veste</td><td>89.00</td><td>0</td></tr>
+        <tr><td class="pk">4</td><td>Casquette</td><td>19.00</td><td>200</td></tr>
+      </table>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">SELECT — du simple au complexe<span class="lang-tag sql">SQL</span></div>
+      <pre><code><span class="cm">-- Tout sélectionner (à éviter en prod)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">utilisateurs</span>;
+
+<span class="cm">-- Colonnes spécifiques</span>
+<span class="kw">SELECT</span> <span class="var">nom</span>, <span class="var">email</span> <span class="kw">FROM</span> <span class="tbl">utilisateurs</span>;
+
+<span class="cm">-- Alias de colonne</span>
+<span class="kw">SELECT</span>
+  <span class="var">nom</span>   <span class="kw">AS</span> <span class="str">'Nom complet'</span>,
+  <span class="var">email</span> <span class="kw">AS</span> <span class="str">adresse_mail</span>,
+  <span class="fn">UPPER</span>(<span class="var">role</span>) <span class="kw">AS</span> <span class="str">role_majuscule</span>
+<span class="kw">FROM</span> <span class="tbl">utilisateurs</span>;
+
+<span class="cm">-- Expressions calculées</span>
+<span class="kw">SELECT</span>
+  <span class="var">nom</span>,
+  <span class="var">prix</span>,
+  <span class="var">prix</span> * <span class="num">1.20</span> <span class="kw">AS</span> <span class="str">prix_ttc</span>,
+  <span class="var">prix</span> * <span class="num">0.10</span> <span class="kw">AS</span> <span class="str">remise_10pct</span>
+<span class="kw">FROM</span> <span class="tbl">produits</span>;
+
+<span class="cm">-- Valeurs distinctes</span>
+<span class="kw">SELECT DISTINCT</span> <span class="var">role</span> <span class="kw">FROM</span> <span class="tbl">utilisateurs</span>;
+<span class="cm">-- → admin, user, guest (sans doublons)</span>
+
+<span class="cm">-- Trier les résultats</span>
+<span class="kw">SELECT</span> <span class="var">nom</span>, <span class="var">prix</span> <span class="kw">FROM</span> <span class="tbl">produits</span>
+<span class="kw">ORDER BY</span> <span class="var">prix</span> <span class="kw">DESC</span>;   <span class="cm">-- du plus cher au moins cher</span>
+
+<span class="cm">-- Limiter et paginer</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">produits</span>
+<span class="kw">ORDER BY</span> <span class="var">id</span>
+<span class="kw">LIMIT</span> <span class="num">10</span> <span class="kw">OFFSET</span> <span class="num">20</span>;  <span class="cm">-- page 3 (items 21-30)</span>
+<span class="cm">-- Raccourci : LIMIT 20, 10 (offset, count)</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 4. FILTRES ══ -->
+<section id="filtres" class="fade-section">
+  <h2><span class="emoji">🎯</span> 4 — WHERE — Filtrer les Données</h2>
+  <div class="glass-card">
+    <p>Le <code>WHERE</code> est la clause la plus puissante pour sélectionner exactement les lignes dont tu as besoin.</p>
+
+    <div class="code-block">
+      <div class="code-header">WHERE — tous les opérateurs<span class="lang-tag sql">SQL</span></div>
+      <pre><code><span class="cm">-- Comparaisons simples</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">produits</span> <span class="kw">WHERE</span> <span class="var">prix</span> <span class="op">></span> <span class="num">50</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">utilisateurs</span> <span class="kw">WHERE</span> <span class="var">role</span> <span class="op">=</span> <span class="str">'admin'</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">utilisateurs</span> <span class="kw">WHERE</span> <span class="var">role</span> <span class="op">!=</span> <span class="str">'guest'</span>;
+
+<span class="cm">-- Combinaisons logiques</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">produits</span>
+<span class="kw">WHERE</span> <span class="var">prix</span> <span class="op">>=</span> <span class="num">20</span> <span class="kw">AND</span> <span class="var">prix</span> <span class="op"><=</span> <span class="num">60</span>;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">utilisateurs</span>
+<span class="kw">WHERE</span> <span class="var">role</span> <span class="op">=</span> <span class="str">'admin'</span> <span class="kw">OR</span> <span class="var">role</span> <span class="op">=</span> <span class="str">'user'</span>;
+
+<span class="cm">-- BETWEEN (inclusif des deux bornes)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">produits</span>
+<span class="kw">WHERE</span> <span class="var">prix</span> <span class="kw">BETWEEN</span> <span class="num">20</span> <span class="kw">AND</span> <span class="num">60</span>;
+
+<span class="cm">-- IN — liste de valeurs</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">utilisateurs</span>
+<span class="kw">WHERE</span> <span class="var">role</span> <span class="kw">IN</span> (<span class="str">'admin'</span>, <span class="str">'user'</span>);
+
+<span class="cm">-- NOT IN</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">commandes</span>
+<span class="kw">WHERE</span> <span class="var">statut</span> <span class="kw">NOT IN</span> (<span class="str">'annulee'</span>);
+
+<span class="cm">-- LIKE — recherche par motif</span>
+<span class="cm">-- % = n'importe quelle suite de caractères</span>
+<span class="cm">-- _ = exactement 1 caractère</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">utilisateurs</span>
+<span class="kw">WHERE</span> <span class="var">email</span> <span class="kw">LIKE</span> <span class="str">'%@gmail.com'</span>;       <span class="cm">-- se termine par @gmail.com</span>
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">produits</span>
+<span class="kw">WHERE</span> <span class="var">nom</span> <span class="kw">LIKE</span> <span class="str">'%shirt%'</span>;              <span class="cm">-- contient "shirt"</span>
+
+<span class="cm">-- IS NULL / IS NOT NULL</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">utilisateurs</span> <span class="kw">WHERE</span> <span class="var">avatar_url</span> <span class="kw">IS NULL</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">utilisateurs</span> <span class="kw">WHERE</span> <span class="var">avatar_url</span> <span class="kw">IS NOT NULL</span>;
+
+<span class="cm">-- Combiner avec parenthèses</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">commandes</span>
+<span class="kw">WHERE</span> (<span class="var">statut</span> <span class="op">=</span> <span class="str">'livree'</span> <span class="kw">OR</span> <span class="var">statut</span> <span class="op">=</span> <span class="str">'confirmee'</span>)
+  <span class="kw">AND</span> <span class="var">total</span> <span class="op">></span> <span class="num">50</span>;
+
+<span class="cm">-- Recherche full-text (sur colonne indexée FULLTEXT)</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">articles</span>
+<span class="kw">WHERE MATCH</span>(<span class="var">titre</span>, <span class="var">contenu</span>) <span class="kw">AGAINST</span>(<span class="str">'intelligence artificielle'</span> <span class="kw">IN BOOLEAN MODE</span>);</code></pre>
+    </div>
+
+    <div class="tip-box warning">
+      <div class="tip-title">⚠️ NULL — le cas particulier</div>
+      <p>En SQL, <code>NULL</code> signifie "valeur inconnue". <code>NULL = NULL</code> vaut <code>NULL</code> (pas <code>TRUE</code>) ! C'est pourquoi on doit utiliser <code>IS NULL</code> et jamais <code>= NULL</code>. De même, <code>NULL != 'valeur'</code> vaut <code>NULL</code>, pas <code>TRUE</code> — ce qui signifie que les lignes avec NULL sont exclues des WHERE classiques.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 5. JOINTURES ══ -->
+<section id="jointures" class="fade-section">
+  <h2><span class="emoji">🔗</span> 5 — Jointures — Relier les Tables</h2>
+  <div class="glass-card">
+    <p>Les jointures permettent de <strong>combiner des données de plusieurs tables</strong> en une seule requête. C'est la fonctionnalité la plus puissante de SQL et la plus mal comprise.</p>
+
+    <h3>Les 4 types de JOIN</h3>
+    <div class="join-grid">
+      <div class="join-card inner">
+        <div class="join-name">INNER JOIN</div>
+        <div class="join-viz">
+          <div class="jc l">A</div><div class="jc m hi"></div><div class="jc r">B</div>
+        </div>
+        <div class="join-desc">Seulement les lignes qui ont une correspondance dans <strong>les deux tables</strong>. Le plus utilisé.</div>
+      </div>
+      <div class="join-card left">
+        <div class="join-name">LEFT JOIN</div>
+        <div class="join-viz">
+          <div class="jc l hi">A</div><div class="jc m hi"></div><div class="jc r">B</div>
+        </div>
+        <div class="join-desc">Toutes les lignes de la table de gauche + correspondances de droite. NULL si pas de match à droite.</div>
+      </div>
+      <div class="join-card right">
+        <div class="join-name">RIGHT JOIN</div>
+        <div class="join-viz">
+          <div class="jc l">A</div><div class="jc m hi"></div><div class="jc r hi">B</div>
+        </div>
+        <div class="join-desc">Toutes les lignes de droite + correspondances de gauche. Moins utilisé — souvent remplaçable par LEFT JOIN inversé.</div>
+      </div>
+      <div class="join-card full">
+        <div class="join-name">FULL OUTER JOIN</div>
+        <div class="join-viz">
+          <div class="jc l hi">A</div><div class="jc m hi"></div><div class="jc r hi">B</div>
+        </div>
+        <div class="join-desc">Toutes les lignes des deux tables. Non natif en MySQL — simulé avec UNION de LEFT + RIGHT JOIN.</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">JOIN — exemples concrets sur la boutique<span class="lang-tag sql">SQL</span></div>
+      <pre><code><span class="cm">-- INNER JOIN : commandes avec le nom du client</span>
+<span class="cm">-- (seulement les clients qui ont commandé)</span>
+<span class="kw">SELECT</span>
+  <span class="tbl">c</span>.<span class="var">id</span>          <span class="kw">AS</span> commande_id,
+  <span class="tbl">u</span>.<span class="var">nom</span>         <span class="kw">AS</span> client,
+  <span class="tbl">u</span>.<span class="var">email</span>,
+  <span class="tbl">c</span>.<span class="var">total</span>,
+  <span class="tbl">c</span>.<span class="var">statut</span>
+<span class="kw">FROM</span> <span class="tbl">commandes</span> <span class="tbl">c</span>
+<span class="kw">INNER JOIN</span> <span class="tbl">utilisateurs</span> <span class="tbl">u</span> <span class="kw">ON</span> <span class="tbl">c</span>.<span class="var">utilisateur_id</span> <span class="op">=</span> <span class="tbl">u</span>.<span class="var">id</span>
+<span class="kw">ORDER BY</span> <span class="tbl">c</span>.<span class="var">cree_le</span> <span class="kw">DESC</span>;
+
+<span class="cm">-- LEFT JOIN : TOUS les utilisateurs,</span>
+<span class="cm">-- avec leurs commandes s'ils en ont</span>
+<span class="kw">SELECT</span>
+  <span class="tbl">u</span>.<span class="var">nom</span>,
+  <span class="fn">COUNT</span>(<span class="tbl">c</span>.<span class="var">id</span>)    <span class="kw">AS</span> nb_commandes,
+  <span class="fn">COALESCE</span>(<span class="fn">SUM</span>(<span class="tbl">c</span>.<span class="var">total</span>), <span class="num">0</span>) <span class="kw">AS</span> total_depense
+<span class="kw">FROM</span> <span class="tbl">utilisateurs</span> <span class="tbl">u</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">commandes</span> <span class="tbl">c</span> <span class="kw">ON</span> <span class="tbl">u</span>.<span class="var">id</span> <span class="op">=</span> <span class="tbl">c</span>.<span class="var">utilisateur_id</span>
+<span class="kw">GROUP BY</span> <span class="tbl">u</span>.<span class="var">id</span>, <span class="tbl">u</span>.<span class="var">nom</span>
+<span class="kw">ORDER BY</span> total_depense <span class="kw">DESC</span>;
+<span class="cm">-- David (0 commande) apparaît avec nb=0, total=0</span>
+
+<span class="cm">-- LEFT JOIN pour trouver les clients SANS commande</span>
+<span class="kw">SELECT</span> <span class="tbl">u</span>.<span class="var">nom</span>, <span class="tbl">u</span>.<span class="var">email</span>
+<span class="kw">FROM</span> <span class="tbl">utilisateurs</span> <span class="tbl">u</span>
+<span class="kw">LEFT JOIN</span> <span class="tbl">commandes</span> <span class="tbl">c</span> <span class="kw">ON</span> <span class="tbl">u</span>.<span class="var">id</span> <span class="op">=</span> <span class="tbl">c</span>.<span class="var">utilisateur_id</span>
+<span class="kw">WHERE</span> <span class="tbl">c</span>.<span class="var">id</span> <span class="kw">IS NULL</span>;  <span class="cm">-- le truc classique !</span>
+
+<span class="cm">-- JOIN triple : commandes + clients + lignes de commande + produits</span>
+<span class="kw">SELECT</span>
+  <span class="tbl">u</span>.<span class="var">nom</span>      <span class="kw">AS</span> client,
+  <span class="tbl">c</span>.<span class="var">id</span>       <span class="kw">AS</span> commande,
+  <span class="tbl">p</span>.<span class="var">nom</span>      <span class="kw">AS</span> produit,
+  <span class="tbl">lc</span>.<span class="var">quantite</span>,
+  <span class="tbl">lc</span>.<span class="var">quantite</span> <span class="op">*</span> <span class="tbl">p</span>.<span class="var">prix</span> <span class="kw">AS</span> sous_total
+<span class="kw">FROM</span> <span class="tbl">commandes</span> <span class="tbl">c</span>
+<span class="kw">JOIN</span> <span class="tbl">utilisateurs</span>      <span class="tbl">u</span>  <span class="kw">ON</span> <span class="tbl">c</span>.<span class="var">utilisateur_id</span>  <span class="op">=</span> <span class="tbl">u</span>.<span class="var">id</span>
+<span class="kw">JOIN</span> <span class="tbl">lignes_commande</span>   <span class="tbl">lc</span> <span class="kw">ON</span> <span class="tbl">lc</span>.<span class="var">commande_id</span>     <span class="op">=</span> <span class="tbl">c</span>.<span class="var">id</span>
+<span class="kw">JOIN</span> <span class="tbl">produits</span>          <span class="tbl">p</span>  <span class="kw">ON</span> <span class="tbl">lc</span>.<span class="var">produit_id</span>      <span class="op">=</span> <span class="tbl">p</span>.<span class="var">id</span>
+<span class="kw">WHERE</span> <span class="tbl">c</span>.<span class="var">statut</span> <span class="op"!=</span> <span class="str">'annulee'</span>
+<span class="kw">ORDER BY</span> <span class="tbl">c</span>.<span class="var">id</span>, <span class="tbl">p</span>.<span class="var">nom</span>;</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 6. AGRÉGATS ══ -->
+<section id="agregats" class="fade-section">
+  <h2><span class="emoji">📊</span> 6 — Fonctions d'Agrégat &amp; GROUP BY</h2>
+  <div class="glass-card">
+    <p>Les fonctions d'agrégat calculent une valeur à partir de plusieurs lignes : compter, sommer, faire des moyennes. Combinées avec <code>GROUP BY</code>, elles produisent des statistiques puissantes.</p>
+
+    <div class="code-block">
+      <div class="code-header">Agrégats — COUNT, SUM, AVG, MIN, MAX<span class="lang-tag sql">SQL</span></div>
+      <pre><code><span class="cm">-- Compter les utilisateurs</span>
+<span class="kw">SELECT COUNT</span>(*) <span class="kw">AS</span> total_users <span class="kw">FROM</span> <span class="tbl">utilisateurs</span>;
+
+<span class="cm">-- COUNT(colonne) ignore les NULL</span>
+<span class="kw">SELECT COUNT</span>(<span class="var">avatar_url</span>) <span class="kw">AS</span> avec_avatar <span class="kw">FROM</span> <span class="tbl">utilisateurs</span>;
+
+<span class="cm">-- Statistiques sur les prix</span>
+<span class="kw">SELECT</span>
+  <span class="fn">COUNT</span>(*) <span class="kw">AS</span> nb_produits,
+  <span class="fn">AVG</span>(<span class="var">prix</span>)  <span class="kw">AS</span> prix_moyen,
+  <span class="fn">MIN</span>(<span class="var">prix</span>)  <span class="kw">AS</span> moins_cher,
+  <span class="fn">MAX</span>(<span class="var">prix</span>)  <span class="kw">AS</span> plus_cher,
+  <span class="fn">SUM</span>(<span class="var">stock</span>) <span class="kw">AS</span> total_stock
+<span class="kw">FROM</span> <span class="tbl">produits</span>;
+
+<span class="cm">-- GROUP BY : statistiques par groupe</span>
+<span class="kw">SELECT</span>
+  <span class="var">role</span>,
+  <span class="fn">COUNT</span>(*) <span class="kw">AS</span> nb_utilisateurs
+<span class="kw">FROM</span> <span class="tbl">utilisateurs</span>
+<span class="kw">GROUP BY</span> <span class="var">role</span>
+<span class="kw">ORDER BY</span> nb_utilisateurs <span class="kw">DESC</span>;
+
+<span class="cm">-- Chiffre d'affaires par statut de commande</span>
+<span class="kw">SELECT</span>
+  <span class="var">statut</span>,
+  <span class="fn">COUNT</span>(*) <span class="kw">AS</span> nb,
+  <span class="fn">SUM</span>(<span class="var">total</span>) <span class="kw">AS</span> ca_total,
+  <span class="fn">ROUND</span>(<span class="fn">AVG</span>(<span class="var">total</span>), <span class="num">2</span>) <span class="kw">AS</span> panier_moyen
+<span class="kw">FROM</span> <span class="tbl">commandes</span>
+<span class="kw">GROUP BY</span> <span class="var">statut</span>;
+
+<span class="cm">-- HAVING : filtrer les groupes (≠ WHERE qui filtre les lignes)</span>
+<span class="kw">SELECT</span>
+  <span class="var">utilisateur_id</span>,
+  <span class="fn">COUNT</span>(*) <span class="kw">AS</span> nb_commandes,
+  <span class="fn">SUM</span>(<span class="var">total</span>) <span class="kw">AS</span> total_depense
+<span class="kw">FROM</span> <span class="tbl">commandes</span>
+<span class="kw">WHERE</span> <span class="var">statut</span> <span class="op">!=</span> <span class="str">'annulee'</span>      <span class="cm">-- filtrer avant groupement</span>
+<span class="kw">GROUP BY</span> <span class="var">utilisateur_id</span>
+<span class="kw">HAVING</span> <span class="fn">SUM</span>(<span class="var">total</span>) <span class="op">></span> <span class="num">100</span>        <span class="cm">-- filtrer après groupement</span>
+<span class="kw">ORDER BY</span> total_depense <span class="kw">DESC</span>;</code></pre>
+    </div>
+
+    <h3>Fonctions SQL utiles</h3>
+    <div class="code-block">
+      <div class="code-header">Fonctions de chaînes, dates et conditionnelles<span class="lang-tag sql">SQL</span></div>
+      <pre><code><span class="cm">-- Chaînes</span>
+<span class="kw">SELECT</span>
+  <span class="fn">UPPER</span>(<span class="var">nom</span>),          <span class="cm">-- ALICE</span>
+  <span class="fn">LOWER</span>(<span class="var">email</span>),        <span class="cm">-- alice@mail.fr</span>
+  <span class="fn">LENGTH</span>(<span class="var">nom</span>),         <span class="cm">-- 5</span>
+  <span class="fn">TRIM</span>(<span class="var">nom</span>),           <span class="cm">-- supprime espaces début/fin</span>
+  <span class="fn">CONCAT</span>(<span class="var">nom</span>, <span class="str">' '</span>, <span class="var">email</span>),
+  <span class="fn">SUBSTRING</span>(<span class="var">nom</span>, <span class="num">1</span>, <span class="num">3</span>)  <span class="cm">-- 3 premiers caractères</span>
+<span class="kw">FROM</span> <span class="tbl">utilisateurs</span>;
+
+<span class="cm">-- Dates</span>
+<span class="kw">SELECT</span>
+  <span class="fn">NOW</span>(),                         <span class="cm">-- date + heure actuelle</span>
+  <span class="fn">CURDATE</span>(),                     <span class="cm">-- date du jour</span>
+  <span class="fn">DATE_FORMAT</span>(<span class="var">cree_le</span>, <span class="str">'%d/%m/%Y'</span>),
+  <span class="fn">DATEDIFF</span>(<span class="fn">NOW</span>(), <span class="var">cree_le</span>) <span class="kw">AS</span> jours_anciennete,
+  <span class="fn">YEAR</span>(<span class="var">cree_le</span>), <span class="fn">MONTH</span>(<span class="var">cree_le</span>)
+<span class="kw">FROM</span> <span class="tbl">utilisateurs</span>;
+
+<span class="cm">-- Commandes du dernier mois</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">commandes</span>
+<span class="kw">WHERE</span> <span class="var">cree_le</span> <span class="op">>=</span> <span class="fn">DATE_SUB</span>(<span class="fn">NOW</span>(), <span class="kw">INTERVAL</span> <span class="num">30</span> <span class="kw">DAY</span>);
+
+<span class="cm">-- CASE WHEN — condition dans le SELECT</span>
+<span class="kw">SELECT</span>
+  <span class="var">nom</span>,
+  <span class="var">prix</span>,
+  <span class="kw">CASE</span>
+    <span class="kw">WHEN</span> <span class="var">prix</span> <span class="op"><</span> <span class="num">25</span>  <span class="kw">THEN</span> <span class="str">'Économique'</span>
+    <span class="kw">WHEN</span> <span class="var">prix</span> <span class="op"><</span> <span class="num">70</span>  <span class="kw">THEN</span> <span class="str">'Milieu de gamme'</span>
+    <span class="kw">ELSE</span> <span class="str">'Premium'</span>
+  <span class="kw">END</span> <span class="kw">AS</span> categorie_prix,
+  <span class="fn">COALESCE</span>(<span class="var">description</span>, <span class="str">'Pas de description'</span>) <span class="kw">AS</span> desc_safe
+<span class="kw">FROM</span> <span class="tbl">produits</span>;</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 7. CRUD ══ -->
+<section id="crud" class="fade-section">
+  <h2><span class="emoji">✏️</span> 7 — INSERT, UPDATE, DELETE</h2>
+  <div class="glass-card">
+    <div class="compare-grid">
+      <div class="compare-card a">
+        <div class="tag">INSERT — Créer</div>
+        <div class="code-block">
+          <div class="code-header">Insérer des données<span class="lang-tag sql">SQL</span></div>
+          <pre><code><span class="cm">-- Insertion simple</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">utilisateurs</span>
+  (<span class="var">nom</span>, <span class="var">email</span>, <span class="var">mot_de_passe</span>)
+<span class="kw">VALUES</span>
+  (<span class="str">'Julien'</span>, <span class="str">'j@jlq.fr'</span>, <span class="str">'hash_bcrypt'</span>);
+
+<span class="cm">-- Insertion multiple (plus rapide)</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">produits</span>
+  (<span class="var">nom</span>, <span class="var">prix</span>, <span class="var">stock</span>)
+<span class="kw">VALUES</span>
+  (<span class="str">'Hoodie'</span>, <span class="num">49.99</span>, <span class="num">75</span>),
+  (<span class="str">'Short'</span>,  <span class="num">29.00</span>, <span class="num">120</span>),
+  (<span class="str">'Chaussettes'</span>, <span class="num">8.90</span>, <span class="num">500</span>);
+
+<span class="cm">-- INSERT ... SELECT (copier des données)</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">archive_commandes</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">commandes</span>
+<span class="kw">WHERE</span> <span class="var">statut</span> <span class="op">=</span> <span class="str">'annulee'</span>
+  <span class="kw">AND</span> <span class="var">cree_le</span> <span class="op"><</span> <span class="fn">DATE_SUB</span>(<span class="fn">NOW</span>(), <span class="kw">INTERVAL</span> <span class="num">1</span> <span class="kw">YEAR</span>);</code></pre>
+        </div>
+      </div>
+      <div class="compare-card b">
+        <div class="tag">UPDATE &amp; DELETE</div>
+        <div class="code-block">
+          <div class="code-header">Modifier et supprimer<span class="lang-tag sql">SQL</span></div>
+          <pre><code><span class="cm">-- UPDATE — toujours avec WHERE !</span>
+<span class="kw">UPDATE</span> <span class="tbl">utilisateurs</span>
+<span class="kw">SET</span>
+  <span class="var">nom</span> <span class="op">=</span> <span class="str">'Julien L.'</span>,
+  <span class="var">role</span> <span class="op">=</span> <span class="str">'admin'</span>
+<span class="kw">WHERE</span> <span class="var">id</span> <span class="op">=</span> <span class="num">5</span>;
+
+<span class="cm">-- UPDATE avec calcul</span>
+<span class="kw">UPDATE</span> <span class="tbl">produits</span>
+<span class="kw">SET</span> <span class="var">prix</span> <span class="op">=</span> <span class="var">prix</span> * <span class="num">0.90</span>  <span class="cm">-- -10%</span>
+<span class="kw">WHERE</span> <span class="var">stock</span> <span class="op">></span> <span class="num">100</span>;
+
+<span class="cm">-- DELETE — toujours avec WHERE !</span>
+<span class="kw">DELETE FROM</span> <span class="tbl">commandes</span>
+<span class="kw">WHERE</span> <span class="var">statut</span> <span class="op">=</span> <span class="str">'annulee'</span>
+  <span class="kw">AND</span> <span class="var">cree_le</span> <span class="op"><</span> <span class="str">'2023-01-01'</span>;
+
+<span class="cm">-- TRUNCATE — vider une table entière</span>
+<span class="cm">-- (plus rapide que DELETE sans WHERE)</span>
+<span class="kw">TRUNCATE TABLE</span> <span class="tbl">sessions</span>;</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box warning">
+      <div class="tip-title">⚠️ UPDATE et DELETE sans WHERE = catastrophe</div>
+      <p>Un <code>UPDATE utilisateurs SET role = 'guest'</code> sans WHERE met <strong>tous les utilisateurs</strong> en guest. Un <code>DELETE FROM commandes</code> sans WHERE supprime <strong>toute la table</strong>. Bonne pratique : <strong>teste toujours ta condition avec un SELECT d'abord</strong>, puis remplace SELECT par UPDATE/DELETE.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 8. SCHÉMA ══ -->
+<section id="schema" class="fade-section">
+  <h2><span class="emoji">🏛️</span> 8 — Conception de Schéma &amp; Normalisation</h2>
+  <div class="glass-card">
+    <p>Un bon schéma évite la redondance, les incohérences et les problèmes de performance. La <strong>normalisation</strong> est l'ensemble des règles pour y parvenir.</p>
+
+    <h3>Schéma complet — Boutique en ligne</h3>
+    <div class="schema-container">
+      <div class="schema-table">
+        <div class="schema-title">👤 utilisateurs</div>
+        <div class="schema-col"><span class="col-name">id</span><span class="col-type">INT UNSIGNED</span><span class="badge-pk">PK</span></div>
+        <div class="schema-col"><span class="col-name">nom</span><span class="col-type">VARCHAR(100)</span></div>
+        <div class="schema-col"><span class="col-name">email</span><span class="col-type">VARCHAR(255) UNIQUE</span></div>
+        <div class="schema-col"><span class="col-name">mot_de_passe</span><span class="col-type">VARCHAR(255)</span></div>
+        <div class="schema-col"><span class="col-name">role</span><span class="col-type">ENUM</span></div>
+        <div class="schema-col"><span class="col-name">cree_le</span><span class="col-type">TIMESTAMP</span></div>
+      </div>
+      <div class="schema-arrow">→</div>
+      <div class="schema-table">
+        <div class="schema-title">🛒 commandes</div>
+        <div class="schema-col"><span class="col-name">id</span><span class="col-type">INT UNSIGNED</span><span class="badge-pk">PK</span></div>
+        <div class="schema-col"><span class="col-name">utilisateur_id</span><span class="col-type">INT UNSIGNED</span><span class="badge-fk">FK</span></div>
+        <div class="schema-col"><span class="col-name">adresse_id</span><span class="col-type">INT UNSIGNED</span><span class="badge-fk">FK</span></div>
+        <div class="schema-col"><span class="col-name">total</span><span class="col-type">DECIMAL(10,2)</span></div>
+        <div class="schema-col"><span class="col-name">statut</span><span class="col-type">ENUM</span></div>
+        <div class="schema-col"><span class="col-name">cree_le</span><span class="col-type">TIMESTAMP</span></div>
+      </div>
+      <div class="schema-arrow">→</div>
+      <div class="schema-table">
+        <div class="schema-title">📦 lignes_commande</div>
+        <div class="schema-col"><span class="col-name">id</span><span class="col-type">INT UNSIGNED</span><span class="badge-pk">PK</span></div>
+        <div class="schema-col"><span class="col-name">commande_id</span><span class="col-type">INT UNSIGNED</span><span class="badge-fk">FK</span></div>
+        <div class="schema-col"><span class="col-name">produit_id</span><span class="col-type">INT UNSIGNED</span><span class="badge-fk">FK</span></div>
+        <div class="schema-col"><span class="col-name">quantite</span><span class="col-type">INT UNSIGNED</span></div>
+        <div class="schema-col"><span class="col-name">prix_unitaire</span><span class="col-type">DECIMAL(10,2)</span></div>
+      </div>
+      <div class="schema-arrow">←</div>
+      <div class="schema-table">
+        <div class="schema-title">🏷️ produits</div>
+        <div class="schema-col"><span class="col-name">id</span><span class="col-type">INT UNSIGNED</span><span class="badge-pk">PK</span></div>
+        <div class="schema-col"><span class="col-name">categorie_id</span><span class="col-type">INT UNSIGNED</span><span class="badge-fk">FK</span></div>
+        <div class="schema-col"><span class="col-name">nom</span><span class="col-type">VARCHAR(200)</span></div>
+        <div class="schema-col"><span class="col-name">prix</span><span class="col-type">DECIMAL(10,2)</span></div>
+        <div class="schema-col"><span class="col-name">stock</span><span class="col-type">INT UNSIGNED</span></div>
+        <div class="schema-col"><span class="col-name">description</span><span class="col-type">TEXT</span></div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-title">💡 Règles de normalisation essentielles</div>
+      <p>
+        <strong>Ne jamais dupliquer les données</strong> — si le nom d'un produit doit changer, il ne doit changer qu'à un seul endroit.<br>
+        <strong>Stocker le prix unitaire dans lignes_commande</strong> — pas dans produits uniquement. Le prix peut changer, mais la commande historique doit garder le prix au moment de l'achat.<br>
+        <strong>Tables de jointure pour N-N</strong> — un produit peut être dans plusieurs commandes, une commande peut avoir plusieurs produits → table <code>lignes_commande</code>.<br>
+        <strong>Clés étrangères obligatoires</strong> — elles garantissent l'intégrité référentielle (pas de commande orpheline).
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 9. INDEX ══ -->
+<section id="index" class="fade-section">
+  <h2><span class="emoji">⚡</span> 9 — Index — Accélérer les Requêtes</h2>
+  <div class="glass-card">
+    <p>Un index est une <strong>structure de données auxiliaire</strong> (B-Tree) qui permet à MySQL de trouver des lignes sans parcourir toute la table. Sans index sur 1 million de lignes, une recherche par email peut prendre plusieurs secondes. Avec, quelques microsecondes.</p>
+
+    <div class="compare-grid">
+      <div class="compare-card a">
+        <div class="tag">Sans index — full table scan</div>
+        <p style="font-family:'Fira Code',monospace;font-size:.8rem;color:var(--text-muted);">MySQL lit <strong style="color:var(--magenta);">chaque ligne</strong> une par une pour trouver celle qui correspond. Sur 1M lignes → 1M lectures.</p>
+        <div style="background:var(--code-header-bg);border-radius:8px;padding:.6rem;font-family:'Fira Code',monospace;font-size:.75rem;color:var(--magenta);margin-top:.5rem;">⏱️ ~800ms sur 1M lignes</div>
+      </div>
+      <div class="compare-card d">
+        <div class="tag">Avec index — B-Tree lookup</div>
+        <p style="font-family:'Fira Code',monospace;font-size:.8rem;color:var(--text-muted);">MySQL descend dans l'arbre B-Tree — <strong style="color:var(--green);">log₂(1M) ≈ 20 lectures</strong> seulement pour trouver la valeur.</p>
+        <div style="background:var(--tip-green-bg);border-radius:8px;padding:.6rem;font-family:'Fira Code',monospace;font-size:.75rem;color:var(--green);margin-top:.5rem;">⚡ ~1ms sur 1M lignes</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">Créer, analyser et gérer les index<span class="lang-tag sql">SQL</span></div>
+      <pre><code><span class="cm">-- Créer un index simple</span>
+<span class="kw">CREATE INDEX</span> <span class="var">idx_email</span>     <span class="kw">ON</span> <span class="tbl">utilisateurs</span>(<span class="var">email</span>);
+<span class="kw">CREATE INDEX</span> <span class="var">idx_statut</span>    <span class="kw">ON</span> <span class="tbl">commandes</span>(<span class="var">statut</span>);
+<span class="kw">CREATE INDEX</span> <span class="var">idx_cree_le</span>  <span class="kw">ON</span> <span class="tbl">commandes</span>(<span class="var">cree_le</span>);
+
+<span class="cm">-- Index UNIQUE (empêche les doublons + indexe)</span>
+<span class="kw">CREATE UNIQUE INDEX</span> <span class="var">idx_email_unique</span> <span class="kw">ON</span> <span class="tbl">utilisateurs</span>(<span class="var">email</span>);
+
+<span class="cm">-- Index composite (plusieurs colonnes)</span>
+<span class="cm">-- Utile pour : WHERE statut = 'livree' AND utilisateur_id = 5</span>
+<span class="kw">CREATE INDEX</span> <span class="var">idx_user_statut</span> <span class="kw">ON</span> <span class="tbl">commandes</span>(<span class="var">utilisateur_id</span>, <span class="var">statut</span>);
+
+<span class="cm">-- EXPLAIN — voir comment MySQL exécute une requête</span>
+<span class="kw">EXPLAIN SELECT</span> * <span class="kw">FROM</span> <span class="tbl">utilisateurs</span> <span class="kw">WHERE</span> <span class="var">email</span> <span class="op">=</span> <span class="str">'alice@mail.fr'</span>;
+<span class="cm">-- Colonnes importantes :</span>
+<span class="cm">-- type = 'ref' ou 'eq_ref' → index utilisé ✅</span>
+<span class="cm">-- type = 'ALL' → full scan, pas d'index ❌</span>
+<span class="cm">-- rows = nombre estimé de lignes lues</span>
+<span class="cm">-- key = index utilisé</span>
+
+<span class="cm">-- Voir les index d'une table</span>
+<span class="kw">SHOW INDEX FROM</span> <span class="tbl">utilisateurs</span>;
+
+<span class="cm">-- Supprimer un index</span>
+<span class="kw">DROP INDEX</span> <span class="var">idx_email</span> <span class="kw">ON</span> <span class="tbl">utilisateurs</span>;</code></pre>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-title">💡 Règles des index</div>
+      <p>
+        <strong>Indexer obligatoirement :</strong> les colonnes dans WHERE, JOIN ON, ORDER BY fréquents. Les clés étrangères.<br>
+        <strong>Ne pas sur-indexer :</strong> chaque index ralentit les INSERT/UPDATE/DELETE (l'index doit aussi être mis à jour). Tables avec peu de lignes n'ont pas besoin d'index.<br>
+        <strong>Index composite :</strong> l'ordre compte — <code>(user_id, statut)</code> accélère les recherches sur <code>user_id</code> seul ou <code>user_id + statut</code>, mais pas sur <code>statut</code> seul.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 10. TRANSACTIONS ══ -->
+<section id="transactions" class="fade-section">
+  <h2><span class="emoji">🔒</span> 10 — Transactions &amp; ACID</h2>
+  <div class="glass-card">
+    <p>Une transaction est un <strong>groupe d'opérations SQL qui réussissent toutes ensemble ou échouent toutes ensemble</strong>. Indispensable pour les opérations critiques (paiement, transfert, stock).</p>
+
+    <div class="formula-block">
+      <div class="formula-title">Propriétés ACID — garanties d'une transaction</div>
+      <div class="formula-main" style="font-size:.82rem;text-align:left;line-height:2.3;padding:0 .5rem;">
+        <span style="color:var(--cyan);">A</span>tomicité &nbsp;&nbsp;&nbsp;— tout ou rien. Pas de demi-transaction.<br>
+        <span style="color:var(--magenta);">C</span>ohérence &nbsp;&nbsp;&nbsp;— la DB reste dans un état valide avant et après.<br>
+        <span style="color:var(--violet);">I</span>solation &nbsp;&nbsp;&nbsp;&nbsp;— les transactions concurrentes ne se perturbent pas.<br>
+        <span style="color:var(--green);">D</span>urabilité &nbsp;&nbsp;— une transaction committée est permanente, même si le serveur crash.
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">Transaction — achat avec décrémentation de stock<span class="lang-tag sql">SQL</span></div>
+      <pre><code><span class="cm">-- Scenario : Bob achète 2 T-shirts</span>
+
+<span class="kw">START TRANSACTION</span>;
+
+<span class="cm">-- 1. Vérifier le stock disponible</span>
+<span class="kw">SELECT</span> <span class="var">stock</span> <span class="kw">FROM</span> <span class="tbl">produits</span>
+<span class="kw">WHERE</span> <span class="var">id</span> <span class="op">=</span> <span class="num">1</span>
+<span class="kw">FOR UPDATE</span>;  <span class="cm">-- verrouille la ligne le temps de la transaction</span>
+
+<span class="cm">-- Si stock insuffisant → ROLLBACK dans l'application</span>
+
+<span class="cm">-- 2. Créer la commande</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">commandes</span> (<span class="var">utilisateur_id</span>, <span class="var">total</span>)
+<span class="kw">VALUES</span> (<span class="num">2</span>, <span class="num">50.00</span>);
+
+<span class="cm">-- 3. Ajouter la ligne de commande</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">lignes_commande</span>
+  (<span class="var">commande_id</span>, <span class="var">produit_id</span>, <span class="var">quantite</span>, <span class="var">prix_unitaire</span>)
+<span class="kw">VALUES</span>
+  (<span class="fn">LAST_INSERT_ID</span>(), <span class="num">1</span>, <span class="num">2</span>, <span class="num">25.00</span>);
+
+<span class="cm">-- 4. Décrémenter le stock</span>
+<span class="kw">UPDATE</span> <span class="tbl">produits</span>
+<span class="kw">SET</span> <span class="var">stock</span> <span class="op">=</span> <span class="var">stock</span> <span class="op">-</span> <span class="num">2</span>
+<span class="kw">WHERE</span> <span class="var">id</span> <span class="op">=</span> <span class="num">1</span>;
+
+<span class="cm">-- Tout s'est bien passé → valider</span>
+<span class="kw">COMMIT</span>;
+
+<span class="cm">-- En cas d'erreur → annuler tout</span>
+<span class="cm">-- ROLLBACK;</span>
+<span class="cm">-- La commande ET la décrémentation sont annulées</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 11. NODE.JS + MYSQL ══ -->
+<section id="node" class="fade-section">
+  <h2><span class="emoji">🔌</span> 11 — Node.js + MySQL2</h2>
+  <div class="glass-card">
+    <p>Intégrer MySQL dans une API Express. Le package <code>mysql2</code> est le plus performant et supporte les Promises et les requêtes préparées nativement.</p>
+
+    <div class="code-block">
+      <div class="code-header">Installation et connexion<span class="lang-tag bash">BASH</span></div>
+      <pre><code>npm install mysql2 dotenv</code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">src/db.js — pool de connexions<span class="lang-tag node">NODE</span></div>
+      <pre><code><span class="fn">require</span>(<span class="str">'dotenv'</span>).<span class="fn">config</span>();
+<span class="kw">const</span> <span class="var">mysql</span> <span class="op">=</span> <span class="fn">require</span>(<span class="str">'mysql2/promise'</span>);
+
+<span class="cm">// Pool = ensemble de connexions réutilisables</span>
+<span class="cm">// Beaucoup plus efficace qu'une connexion par requête</span>
+<span class="kw">const</span> <span class="var">pool</span> <span class="op">=</span> <span class="var">mysql</span>.<span class="fn">createPool</span>({
+  <span class="var">host</span>:             process.env.<span class="var">DB_HOST</span>,
+  <span class="var">port</span>:             process.env.<span class="var">DB_PORT</span> <span class="op">||</span> <span class="num">3306</span>,
+  <span class="var">database</span>:         process.env.<span class="var">DB_NAME</span>,
+  <span class="var">user</span>:             process.env.<span class="var">DB_USER</span>,
+  <span class="var">password</span>:         process.env.<span class="var">DB_PASSWORD</span>,
+  <span class="var">waitForConnections</span>: <span class="kw">true</span>,
+  <span class="var">connectionLimit</span>:  <span class="num">10</span>,   <span class="cm">// max 10 connexions simultanées</span>
+  <span class="var">charset</span>:          <span class="str">'utf8mb4'</span>
+});
+
+<span class="cm">// Tester la connexion au démarrage</span>
+(<span class="kw">async</span> () <span class="kw">=></span> {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="var">conn</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">pool</span>.<span class="fn">getConnection</span>();
+    console.<span class="fn">log</span>(<span class="str">'✅ MySQL connecté'</span>);
+    <span class="var">conn</span>.<span class="fn">release</span>();
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    console.<span class="fn">error</span>(<span class="str">'❌ MySQL erreur:'</span>, <span class="var">err</span>.message);
+    process.<span class="fn">exit</span>(<span class="num">1</span>);
+  }
+})();
+
+module.exports <span class="op">=</span> <span class="var">pool</span>;</code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">src/routes/users.js — CRUD complet avec MySQL<span class="lang-tag node">EXPRESS</span></div>
+      <pre><code><span class="kw">const</span> <span class="var">express</span> <span class="op">=</span> <span class="fn">require</span>(<span class="str">'express'</span>);
+<span class="kw">const</span> <span class="var">pool</span>    <span class="op">=</span> <span class="fn">require</span>(<span class="str">'../db'</span>);
+<span class="kw">const</span> <span class="var">router</span>  <span class="op">=</span> express.<span class="fn">Router</span>();
+
+<span class="cm">// GET /api/users — liste paginée</span>
+<span class="var">router</span>.<span class="fn">get</span>(<span class="str">'/'</span>, <span class="kw">async</span> (<span class="var">req</span>, <span class="var">res</span>) <span class="kw">=></span> {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> <span class="var">page</span>   <span class="op">=</span> <span class="cls">parseInt</span>(<span class="var">req</span>.query.page)  <span class="op">||</span> <span class="num">1</span>;
+    <span class="kw">const</span> <span class="var">limit</span>  <span class="op">=</span> <span class="cls">parseInt</span>(<span class="var">req</span>.query.limit) <span class="op">||</span> <span class="num">20</span>;
+    <span class="kw">const</span> <span class="var">offset</span> <span class="op">=</span> (<span class="var">page</span> <span class="op">-</span> <span class="num">1</span>) <span class="op">*</span> <span class="var">limit</span>;
+
+    <span class="cm">// ? = paramètre préparé — protège des injections SQL</span>
+    <span class="kw">const</span> [<span class="var">rows</span>] <span class="op">=</span> <span class="kw">await</span> <span class="var">pool</span>.<span class="fn">execute</span>(
+      <span class="str">'SELECT id, nom, email, role, cree_le FROM utilisateurs ORDER BY id LIMIT ? OFFSET ?'</span>,
+      [<span class="var">limit</span>, <span class="var">offset</span>]
+    );
+    <span class="kw">const</span> [[{ <span class="var">total</span> }]] <span class="op">=</span> <span class="kw">await</span> <span class="var">pool</span>.<span class="fn">execute</span>(
+      <span class="str">'SELECT COUNT(*) AS total FROM utilisateurs'</span>
+    );
+    <span class="var">res</span>.<span class="fn">json</span>({ <span class="var">total</span>, <span class="var">page</span>, <span class="var">limit</span>, <span class="var">data</span>: <span class="var">rows</span> });
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    <span class="var">res</span>.<span class="fn">status</span>(<span class="num">500</span>).<span class="fn">json</span>({ <span class="var">erreur</span>: <span class="var">err</span>.message });
+  }
+});
+
+<span class="cm">// GET /api/users/:id</span>
+<span class="var">router</span>.<span class="fn">get</span>(<span class="str">'/:id'</span>, <span class="kw">async</span> (<span class="var">req</span>, <span class="var">res</span>) <span class="kw">=></span> {
+  <span class="kw">const</span> [<span class="var">rows</span>] <span class="op">=</span> <span class="kw">await</span> <span class="var">pool</span>.<span class="fn">execute</span>(
+    <span class="str">'SELECT id, nom, email, role FROM utilisateurs WHERE id = ?'</span>,
+    [<span class="var">req</span>.params.id]
+  );
+  <span class="kw">if</span> (!<span class="var">rows</span>.length) <span class="kw">return</span> <span class="var">res</span>.<span class="fn">status</span>(<span class="num">404</span>).<span class="fn">json</span>({ <span class="var">erreur</span>: <span class="str">'Introuvable'</span> });
+  <span class="var">res</span>.<span class="fn">json</span>(<span class="var">rows</span>[<span class="num">0</span>]);
+});
+
+<span class="cm">// POST /api/users</span>
+<span class="var">router</span>.<span class="fn">post</span>(<span class="str">'/'</span>, <span class="kw">async</span> (<span class="var">req</span>, <span class="var">res</span>) <span class="kw">=></span> {
+  <span class="kw">const</span> { <span class="var">nom</span>, <span class="var">email</span>, <span class="var">mot_de_passe</span> } <span class="op">=</span> <span class="var">req</span>.body;
+  <span class="kw">const</span> <span class="var">bcrypt</span> <span class="op">=</span> <span class="fn">require</span>(<span class="str">'bcryptjs'</span>);
+  <span class="kw">const</span> <span class="var">hash</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">bcrypt</span>.<span class="fn">hash</span>(<span class="var">mot_de_passe</span>, <span class="num">10</span>);
+
+  <span class="kw">const</span> [<span class="var">result</span>] <span class="op">=</span> <span class="kw">await</span> <span class="var">pool</span>.<span class="fn">execute</span>(
+    <span class="str">'INSERT INTO utilisateurs (nom, email, mot_de_passe) VALUES (?, ?, ?)'</span>,
+    [<span class="var">nom</span>, <span class="var">email</span>, <span class="var">hash</span>]
+  );
+  <span class="var">res</span>.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ <span class="var">id</span>: <span class="var">result</span>.insertId, <span class="var">nom</span>, <span class="var">email</span> });
+});
+
+<span class="cm">// Transaction — achat</span>
+<span class="var">router</span>.<span class="fn">post</span>(<span class="str">'/acheter'</span>, <span class="kw">async</span> (<span class="var">req</span>, <span class="var">res</span>) <span class="kw">=></span> {
+  <span class="kw">const</span> <span class="var">conn</span> <span class="op">=</span> <span class="kw">await</span> <span class="var">pool</span>.<span class="fn">getConnection</span>();
+  <span class="kw">try</span> {
+    <span class="kw">await</span> <span class="var">conn</span>.<span class="fn">beginTransaction</span>();
+
+    <span class="kw">const</span> { <span class="var">userId</span>, <span class="var">produitId</span>, <span class="var">qte</span> } <span class="op">=</span> <span class="var">req</span>.body;
+
+    <span class="cm">// Vérifier stock</span>
+    <span class="kw">const</span> [[<span class="var">prod</span>]] <span class="op">=</span> <span class="kw">await</span> <span class="var">conn</span>.<span class="fn">execute</span>(
+      <span class="str">'SELECT prix, stock FROM produits WHERE id = ? FOR UPDATE'</span>,
+      [<span class="var">produitId</span>]
+    );
+    <span class="kw">if</span> (<span class="var">prod</span>.stock <span class="op"><</span> <span class="var">qte</span>) <span class="kw">throw new</span> <span class="cls">Error</span>(<span class="str">'Stock insuffisant'</span>);
+
+    <span class="cm">// Créer commande</span>
+    <span class="kw">const</span> [<span class="var">cmd</span>] <span class="op">=</span> <span class="kw">await</span> <span class="var">conn</span>.<span class="fn">execute</span>(
+      <span class="str">'INSERT INTO commandes (utilisateur_id, total) VALUES (?, ?)'</span>,
+      [<span class="var">userId</span>, <span class="var">prod</span>.prix <span class="op">*</span> <span class="var">qte</span>]
+    );
+    <span class="kw">await</span> <span class="var">conn</span>.<span class="fn">execute</span>(
+      <span class="str">'INSERT INTO lignes_commande (commande_id, produit_id, quantite, prix_unitaire) VALUES (?,?,?,?)'</span>,
+      [<span class="var">cmd</span>.insertId, <span class="var">produitId</span>, <span class="var">qte</span>, <span class="var">prod</span>.prix]
+    );
+    <span class="kw">await</span> <span class="var">conn</span>.<span class="fn">execute</span>(
+      <span class="str">'UPDATE produits SET stock = stock - ? WHERE id = ?'</span>,
+      [<span class="var">qte</span>, <span class="var">produitId</span>]
+    );
+
+    <span class="kw">await</span> <span class="var">conn</span>.<span class="fn">commit</span>();
+    <span class="var">res</span>.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ <span class="var">commandeId</span>: <span class="var">cmd</span>.insertId });
+  } <span class="kw">catch</span> (<span class="var">err</span>) {
+    <span class="kw">await</span> <span class="var">conn</span>.<span class="fn">rollback</span>();
+    <span class="var">res</span>.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ <span class="var">erreur</span>: <span class="var">err</span>.message });
+  } <span class="kw">finally</span> {
+    <span class="var">conn</span>.<span class="fn">release</span>(); <span class="cm">// TOUJOURS libérer la connexion</span>
+  }
+});
+
+module.exports <span class="op">=</span> <span class="var">router</span>;</code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 12. SÉCURITÉ ══ -->
+<section id="securite" class="fade-section">
+  <h2><span class="emoji">🛡️</span> 12 — Sécurité SQL — Injections &amp; Bonnes Pratiques</h2>
+  <div class="glass-card">
+    <p>L'injection SQL est la faille de sécurité web la plus commune et la plus dévastatrice. Une seule requête mal construite peut exposer toute ta base de données.</p>
+
+    <div class="compare-grid">
+      <div class="compare-card b">
+        <div class="tag">❌ Code vulnérable</div>
+        <div class="code-block">
+          <div class="code-header">JAMAIS faire ça<span class="lang-tag node">DANGER</span></div>
+          <pre><code><span class="cm">// L'attaquant envoie :</span>
+<span class="cm">// email = "' OR '1'='1"</span>
+<span class="cm">// La requête devient :</span>
+<span class="cm">// SELECT * FROM utilisateurs</span>
+<span class="cm">// WHERE email = '' OR '1'='1'</span>
+<span class="cm">// → retourne TOUS les utilisateurs !</span>
+
+<span class="cm">// Encore pire :</span>
+<span class="cm">// email = "'; DROP TABLE utilisateurs; --"</span>
+
+<span class="kw">const</span> <span class="var">query</span> <span class="op">=</span> <span class="str">`SELECT * FROM utilisateurs
+  WHERE email = '${req.body.email}'`</span>;
+<span class="cm">// CONCATÉNATION DIRECTE = INJECTION SQL !</span>
+<span class="kw">await</span> <span class="var">conn</span>.<span class="fn">query</span>(<span class="var">query</span>); <span class="cm">// ☠️</span></code></pre>
+        </div>
+      </div>
+      <div class="compare-card d">
+        <div class="tag">✅ Code sécurisé</div>
+        <div class="code-block">
+          <div class="code-header">Requêtes préparées<span class="lang-tag node">SÉCURISÉ</span></div>
+          <pre><code><span class="cm">// Les ? sont des paramètres liés</span>
+<span class="cm">// MySQL échappe automatiquement</span>
+<span class="cm">// le contenu — impossible d'injecter</span>
+
+<span class="kw">const</span> [<span class="var">rows</span>] <span class="op">=</span> <span class="kw">await</span> <span class="var">pool</span>.<span class="fn">execute</span>(
+  <span class="str">'SELECT * FROM utilisateurs WHERE email = ?'</span>,
+  [<span class="var">req</span>.body.email]  <span class="cm">// passé séparément ✅</span>
+);
+
+<span class="cm">// Avec mysql2, execute() utilise</span>
+<span class="cm">// automatiquement les prepared statements</span>
+<span class="cm">// Le driver s'occupe de tout.</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box success">
+      <div class="tip-title">✅ Checklist sécurité SQL</div>
+      <p>
+        ✅ <strong>Toujours des requêtes préparées</strong> — jamais de concaténation de variables utilisateur dans du SQL<br>
+        ✅ <strong>Valider les données côté serveur</strong> avant d'insérer (longueur, format, type)<br>
+        ✅ <strong>Principe du moindre privilège</strong> — le user MySQL de l'app n'a que SELECT/INSERT/UPDATE/DELETE, jamais DROP/CREATE/GRANT<br>
+        ✅ <strong>Ne jamais exposer les erreurs MySQL</strong> en production — loguer côté serveur, répondre "erreur serveur" au client<br>
+        ✅ <strong>Mots de passe hashés</strong> avec bcrypt — jamais en clair en base<br>
+        ✅ <strong>Sauvegardes régulières</strong> — <code>mysqldump boutique > backup_$(date +%Y%m%d).sql</code>
+      </p>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">Commandes MySQL utiles en production<span class="lang-tag bash">BASH</span></div>
+      <pre><code><span class="cm"># Créer un user MySQL limité pour l'application</span>
+mysql -u root -p -e "
+  CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'motdepasse_fort';
+  GRANT SELECT, INSERT, UPDATE, DELETE ON boutique.* TO 'app_user'@'localhost';
+  FLUSH PRIVILEGES;
+"
+
+<span class="cm"># Backup complet</span>
+mysqldump -u root -p boutique > backup_$(date +%Y%m%d_%H%M).sql
+
+<span class="cm"># Backup compressé</span>
+mysqldump -u root -p boutique | gzip > backup_$(date +%Y%m%d).sql.gz
+
+<span class="cm"># Restaurer depuis un backup</span>
+mysql -u root -p boutique < backup_20240115.sql
+
+<span class="cm"># Voir les requêtes lentes (slow query log)</span>
+mysql -u root -p -e "SHOW VARIABLES LIKE 'slow_query%';"
+
+<span class="cm"># Voir les connexions actives</span>
+mysql -u root -p -e "SHOW PROCESSLIST;"</code></pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Cours rédigé pour <span>CodeMaster — JLQDeveloppement</span> — SQL &amp; MySQL — Du SELECT aux transactions sécurisées</p>
+</footer>
+</div>
+
+<script>
+const themeToggle=document.getElementById('themeToggle'),html=document.documentElement;
+if(!html.getAttribute('data-theme'))html.setAttribute('data-theme','dark');
+themeToggle.addEventListener('click',()=>{
+  html.setAttribute('data-theme',(html.getAttribute('data-theme')||'dark')==='dark'?'light':'dark');
+});
+const navToggle=document.querySelector('.nav-toggle'),navMenu=document.getElementById('nav-menu');
+navToggle.addEventListener('click',()=>{
+  navToggle.classList.toggle('active');navMenu.classList.toggle('open');
+  navToggle.setAttribute('aria-expanded',navMenu.classList.contains('open'));
+});
+navMenu.querySelectorAll('a').forEach(l=>l.addEventListener('click',()=>{
+  navToggle.classList.remove('active');navMenu.classList.remove('open');
+  navToggle.setAttribute('aria-expanded','false');
+}));
+document.addEventListener('click',e=>{
+  if(!e.target.closest('nav')&&navMenu.classList.contains('open')){
+    navToggle.classList.remove('active');navMenu.classList.remove('open');
+    navToggle.setAttribute('aria-expanded','false');
+  }
+});
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.08});
+document.querySelectorAll('.fade-section').forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>

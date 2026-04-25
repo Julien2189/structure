@@ -1,0 +1,381 @@
+// ============================================================
+// LIZZIE RH — Schéma Prisma Multi-Tenant
+// Base : PostgreSQL (Supabase recommandé)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// PLANS & ABONNEMENTS
+// ============================================================
+
+enum Plan {
+  STARTER    // 29€/mois — 5 employés max
+  PRO        // 79€/mois — 50 employés max
+  ENTERPRISE // 199€/mois — illimité
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  UNPAID
+}
+
+// ============================================================
+// TENANT (Entreprise cliente)
+// ============================================================
+
+model Tenant {
+  id          String   @id @default(cuid())
+  name        String                        // Nom de l'entreprise
+  slug        String   @unique              // ex: "acme-corp" → acme-corp.lizzierh.com
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users         User[]
+  employees     Employee[]
+  departments   Department[]
+  conversations Conversation[]
+  alerts        Alert[]
+  subscription  Subscription?
+  settings      TenantSettings?
+
+  @@map("tenants")
+}
+
+// ============================================================
+// ABONNEMENT STRIPE (lié au Tenant)
+// ============================================================
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  tenantId             String             @unique
+  tenant               Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Stripe IDs
+  stripeCustomerId     String             @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+
+  plan                 Plan               @default(STARTER)
+  status               SubscriptionStatus @default(TRIALING)
+
+  // Dates
+  trialEndsAt          DateTime?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  canceledAt           DateTime?
+
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@map("subscriptions")
+}
+
+// ============================================================
+// UTILISATEUR (Admin RH ou Manager)
+// ============================================================
+
+enum UserRole {
+  OWNER      // Créateur du compte, accès total
+  ADMIN      // Accès complet sans billing
+  MANAGER    // Accès à son département uniquement
+  VIEWER     // Lecture seule
+}
+
+model User {
+  id           String   @id @default(cuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  avatarUrl    String?
+  role         UserRole @default(ADMIN)
+
+  // Auth
+  emailVerified    Boolean  @default(false)
+  emailVerifyToken String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  lastLoginAt      DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  conversations Conversation[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+// ============================================================
+// DÉPARTEMENT
+// ============================================================
+
+model Department {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name      String                  // ex: "Marketing", "Tech", "Ventes"
+  managerId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees Employee[]
+
+  @@unique([tenantId, name])
+  @@map("departments")
+}
+
+// ============================================================
+// EMPLOYÉ
+// ============================================================
+
+enum EmployeeStatus {
+  ACTIVE
+  ON_LEAVE
+  SUSPENDED
+  OFFBOARDED
+}
+
+enum SentimentLevel {
+  VERY_POSITIVE
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+  VERY_NEGATIVE
+  UNKNOWN
+}
+
+model Employee {
+  id           String         @id @default(cuid())
+  tenantId     String
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  departmentId String?
+  department   Department?    @relation(fields: [departmentId], references: [id])
+
+  firstName    String
+  lastName     String
+  email        String
+  jobTitle     String?
+  phone        String?
+  hireDate     DateTime?
+  birthDate    DateTime?
+  status       EmployeeStatus @default(ACTIVE)
+
+  // Analyse IA bien-être
+  wellbeingScore   Float?         // 0-100
+  lastSentiment    SentimentLevel @default(UNKNOWN)
+  riskLevel        Int            @default(0) // 0=aucun, 1=faible, 2=moyen, 3=élevé
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  conversations Conversation[]
+  alerts        Alert[]
+  checkIns      CheckIn[]
+
+  @@unique([tenantId, email])
+  @@map("employees")
+}
+
+// ============================================================
+// CONVERSATION LIZZIE (IA)
+// ============================================================
+
+enum ConversationStatus {
+  ACTIVE
+  CLOSED
+  FLAGGED   // Nécessite intervention humaine
+}
+
+model Conversation {
+  id         String             @id @default(cuid())
+  tenantId   String
+  tenant     Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId     String?            // RH qui a initié (ou null si auto)
+  user       User?              @relation(fields: [userId], references: [id])
+  employeeId String?
+  employee   Employee?          @relation(fields: [employeeId], references: [id])
+
+  title      String?
+  status     ConversationStatus @default(ACTIVE)
+  summary    String?            // Résumé IA de la conversation
+
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  messages   Message[]
+  alerts     Alert[]
+
+  @@map("conversations")
+}
+
+// ============================================================
+// MESSAGE
+// ============================================================
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role           MessageRole
+  content        String       @db.Text
+  tokens         Int?         // Tokens consommés (suivi coût API)
+
+  createdAt      DateTime     @default(now())
+
+  @@map("messages")
+}
+
+// ============================================================
+// ALERTE RH
+// ============================================================
+
+enum AlertType {
+  BURNOUT_RISK
+  ABSENTEEISM
+  CONFLICT
+  PERFORMANCE_DROP
+  POSITIVE_FEEDBACK
+  OTHER
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AlertStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  DISMISSED
+}
+
+model Alert {
+  id             String        @id @default(cuid())
+  tenantId       String
+  tenant         Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId     String?
+  employee       Employee?     @relation(fields: [employeeId], references: [id])
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+
+  type           AlertType
+  severity       AlertSeverity @default(MEDIUM)
+  status         AlertStatus   @default(OPEN)
+  title          String
+  description    String        @db.Text
+  aiAnalysis     String?       @db.Text  // Analyse détaillée de Lizzie
+
+  resolvedAt     DateTime?
+  resolvedBy     String?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("alerts")
+}
+
+// ============================================================
+// CHECK-IN EMPLOYÉ (questionnaire bien-être périodique)
+// ============================================================
+
+model CheckIn {
+  id         String   @id @default(cuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  score      Int                // 1-10
+  mood       String?            // "heureux", "stressé", etc.
+  note       String?            @db.Text
+  isAnonymous Boolean           @default(false)
+
+  createdAt  DateTime @default(now())
+
+  @@map("check_ins")
+}
+
+// ============================================================
+// PARAMÈTRES TENANT
+// ============================================================
+
+model TenantSettings {
+  id                  String  @id @default(cuid())
+  tenantId            String  @unique
+  tenant              Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Lizzie IA
+  lizziePersonality   String  @default("professional") // professional | friendly | strict
+  language            String  @default("fr")
+  autoAlerts          Boolean @default(true)
+  checkInFrequency    String  @default("weekly")       // daily | weekly | monthly
+
+  // Notifications
+  emailAlerts         Boolean @default(true)
+  slackWebhookUrl     String?
+
+  // Branding
+  primaryColor        String  @default("#D4AF37")
+  companyDescription  String? @db.Text
+
+  @@map("tenant_settings")
+}
+
+// ============================================================
+// AUDIT LOG (traçabilité RGPD)
+// ============================================================
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+  EXPORT
+  VIEW_SENSITIVE
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+
+  action     AuditAction
+  resource   String      // "employee", "conversation", etc.
+  resourceId String?
+  metadata   Json?       // Données supplémentaires
+  ipAddress  String?
+
+  createdAt  DateTime    @default(now())
+
+  @@map("audit_logs")
+}

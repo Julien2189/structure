@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mathématiques du Deep Learning — Tenseurs, Backprop & Optimiseurs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Fira+Code:wght@300;400;500;600&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --sp-xs: 0.5rem; --sp-sm: 1rem; --sp-md: 1.5rem; --sp-lg: 2rem;
+  --sp-xl: 3rem; --sp-2xl: 4rem;
+  --container-px: 2rem; --card-px: 2rem; --card-radius: 16px;
+}
+
+[data-theme="dark"] {
+  --cyan: #00f0ff; --magenta: #ff00e5; --violet: #8b5cf6;
+  --deep-violet: #4c1d95; --bg: #0a0a1a;
+  --bg-elevated: rgba(15,15,40,0.65); --card-bg: rgba(15,15,40,0.65);
+  --glass-border: rgba(0,240,255,0.15); --text: #e0e0f0;
+  --text-muted: #9090b0; --text-heading: #e0e0f0;
+  --nav-bg: rgba(10,10,26,0.92); --code-bg: rgba(5,5,20,0.9);
+  --code-text: #c8c8e0; --code-border: rgba(139,92,246,0.2);
+  --code-header-bg: rgba(139,92,246,0.1); --code-header-border: rgba(139,92,246,0.15);
+  --table-header-bg: rgba(139,92,246,0.12); --table-row-hover: rgba(0,240,255,0.04);
+  --table-row-border: rgba(139,92,246,0.06);
+  --tip-bg: rgba(0,240,255,0.04); --tip-warn-bg: rgba(255,0,229,0.04);
+  --gradient-1: linear-gradient(135deg, var(--cyan), var(--violet));
+  --gradient-2: linear-gradient(135deg, var(--magenta), var(--violet));
+  --gradient-3: linear-gradient(135deg, var(--cyan), var(--magenta));
+  --glow-cyan: rgba(0,240,255,0.06); --glow-magenta: rgba(255,0,229,0.05);
+  --glow-violet: rgba(139,92,246,0.04); --grid-line: rgba(0,240,255,0.5);
+  --grid-opacity: 0.03; --scrollbar-track: #0a0a1a;
+  --shadow-card: 0 0 30px rgba(0,240,255,0.05);
+  --tag-js-bg: rgba(0,240,255,0.1); --tag-js-border: rgba(0,240,255,0.2);
+  --tag-py-bg: rgba(255,0,229,0.1); --tag-py-border: rgba(255,0,229,0.2);
+  --compare-js-bar: linear-gradient(135deg, var(--cyan), var(--violet));
+  --compare-py-bar: linear-gradient(135deg, var(--magenta), var(--violet));
+  --lang-js-bg: rgba(0,240,255,0.15); --lang-py-bg: rgba(255,0,229,0.15);
+  --pipeline-hover-shadow: 0 8px 25px rgba(0,240,255,0.1);
+  --nav-link-hover-bg: rgba(0,240,255,0.08);
+  --math-bg: rgba(139,92,246,0.06); --math-border: rgba(139,92,246,0.25);
+  --formula-bg: rgba(0,240,255,0.04); --formula-border: rgba(0,240,255,0.2);
+  --tensor-cell-bg: rgba(15,15,40,0.9); --tensor-border: rgba(0,240,255,0.3);
+  --syn-kw: #ff00e5; --syn-fn: #00f0ff; --syn-str: #a5f3a0;
+  --syn-cm: #666680; --syn-num: #fbbf24; --syn-op: #f472b6;
+  --syn-var: #c4b5fd; --syn-cls: #60a5fa;
+}
+
+[data-theme="light"] {
+  --cyan: #0e7490; --magenta: #a8246b; --violet: #6d4aad;
+  --deep-violet: #8b6cc1; --bg: #f5f3f0;
+  --bg-elevated: rgba(255,255,255,0.85); --card-bg: rgba(255,255,255,0.78);
+  --glass-border: rgba(109,74,173,0.15); --text: #2e2b35;
+  --text-muted: #6b6879; --text-heading: #1e1b25;
+  --nav-bg: rgba(245,243,240,0.94); --code-bg: #1e1b28;
+  --code-text: #c8c8e0; --code-border: rgba(109,74,173,0.2);
+  --code-header-bg: rgba(109,74,173,0.08); --code-header-border: rgba(109,74,173,0.12);
+  --table-header-bg: rgba(109,74,173,0.07); --table-row-hover: rgba(14,116,144,0.04);
+  --table-row-border: rgba(109,74,173,0.06);
+  --tip-bg: rgba(14,116,144,0.06); --tip-warn-bg: rgba(168,36,107,0.06);
+  --gradient-1: linear-gradient(135deg,#0e7490,#6d4aad);
+  --gradient-2: linear-gradient(135deg,#a8246b,#6d4aad);
+  --gradient-3: linear-gradient(135deg,#0e7490,#a8246b);
+  --glow-cyan: rgba(14,116,144,0.04); --glow-magenta: rgba(168,36,107,0.03);
+  --glow-violet: rgba(109,74,173,0.03); --grid-line: rgba(109,74,173,0.3);
+  --grid-opacity: 0.02; --scrollbar-track: #f5f3f0;
+  --shadow-card: 0 4px 20px rgba(0,0,0,0.06);
+  --tag-js-bg: rgba(14,116,144,0.1); --tag-js-border: rgba(14,116,144,0.2);
+  --tag-py-bg: rgba(168,36,107,0.1); --tag-py-border: rgba(168,36,107,0.2);
+  --compare-js-bar: linear-gradient(135deg,#0e7490,#6d4aad);
+  --compare-py-bar: linear-gradient(135deg,#a8246b,#6d4aad);
+  --lang-js-bg: rgba(14,116,144,0.12); --lang-py-bg: rgba(168,36,107,0.12);
+  --pipeline-hover-shadow: 0 8px 25px rgba(14,116,144,0.1);
+  --nav-link-hover-bg: rgba(14,116,144,0.08);
+  --math-bg: rgba(109,74,173,0.05); --math-border: rgba(109,74,173,0.2);
+  --formula-bg: rgba(14,116,144,0.05); --formula-border: rgba(14,116,144,0.2);
+  --tensor-cell-bg: rgba(255,255,255,0.9); --tensor-border: rgba(109,74,173,0.35);
+  --syn-kw: #ff79c6; --syn-fn: #50e3f5; --syn-str: #a5f3a0;
+  --syn-cm: #666680; --syn-num: #fbbf24; --syn-op: #f472b6;
+  --syn-var: #c4b5fd; --syn-cls: #60a5fa;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Exo 2', sans-serif; background: var(--bg); color: var(--text);
+  line-height: 1.75; overflow-x: hidden; -webkit-text-size-adjust: 100%;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+body::before {
+  content:''; position:fixed; inset:0;
+  background:
+    radial-gradient(ellipse 900px 600px at 15% 20%, var(--glow-cyan) 0%, transparent 70%),
+    radial-gradient(ellipse 800px 500px at 85% 70%, var(--glow-magenta) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 600px at 50% 50%, var(--glow-violet) 0%, transparent 70%);
+  pointer-events:none; z-index:0; transition:background 0.4s ease;
+}
+
+.grid-overlay {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  opacity:var(--grid-opacity);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:60px 60px; transition:opacity 0.4s ease;
+}
+
+::-webkit-scrollbar { width:6px; height:4px; }
+::-webkit-scrollbar-track { background:var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background:var(--gradient-1); border-radius:3px; }
+
+/* ══ THEME TOGGLE ══ */
+.theme-toggle {
+  position:relative; width:48px; height:26px;
+  background:var(--glass-border); border:1px solid var(--glass-border);
+  border-radius:50px; cursor:pointer; flex-shrink:0;
+  transition:background 0.3s,border-color 0.3s; display:flex; align-items:center;
+}
+.theme-toggle::before {
+  content:''; position:absolute; left:3px; top:50%; transform:translateY(-50%);
+  width:20px; height:20px; border-radius:50%; background:var(--cyan);
+  transition:left 0.3s ease,background 0.3s; box-shadow:0 0 6px var(--cyan);
+}
+[data-theme="light"] .theme-toggle::before { left:25px; background:var(--violet); box-shadow:0 0 6px rgba(109,74,173,0.4); }
+.theme-toggle .toggle-icon { position:absolute; font-size:0.7rem; transition:opacity 0.3s; line-height:1; }
+.theme-toggle .icon-moon { left:6px; opacity:1; }
+.theme-toggle .icon-sun { right:5px; opacity:0.4; }
+[data-theme="light"] .theme-toggle .icon-moon { opacity:0.4; }
+[data-theme="light"] .theme-toggle .icon-sun { opacity:1; }
+
+/* ══ NAV ══ */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  background:var(--nav-bg); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--glass-border);
+  padding:0.8rem var(--container-px); display:flex; align-items:center; gap:1rem;
+  transition:background 0.4s,border-color 0.4s;
+}
+nav .logo {
+  font-family:'Orbitron',sans-serif; font-weight:900; font-size:1.1rem;
+  background:var(--gradient-3); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  letter-spacing:2px; white-space:nowrap; flex-shrink:0;
+}
+.nav-toggle {
+  display:none; background:none; border:none; cursor:pointer;
+  width:32px; height:24px; position:relative; flex-shrink:0;
+}
+.nav-toggle span {
+  display:block; position:absolute; left:0; right:0; height:2px;
+  background:var(--cyan); border-radius:2px; transition:all 0.3s ease;
+}
+.nav-toggle span:nth-child(1) { top:2px; }
+.nav-toggle span:nth-child(2) { top:11px; }
+.nav-toggle span:nth-child(3) { top:20px; }
+.nav-toggle.active span:nth-child(1) { top:11px; transform:rotate(45deg); }
+.nav-toggle.active span:nth-child(2) { opacity:0; }
+.nav-toggle.active span:nth-child(3) { top:11px; transform:rotate(-45deg); }
+.nav-right { display:flex; align-items:center; gap:1rem; margin-left:auto; }
+nav ul { list-style:none; display:flex; gap:0.3rem; flex-wrap:wrap; }
+nav a {
+  color:var(--text-muted); text-decoration:none; font-size:0.78rem;
+  padding:0.35rem 0.7rem; border-radius:6px; transition:all 0.3s;
+  font-weight:500; letter-spacing:0.3px; white-space:nowrap;
+}
+nav a:hover { color:var(--cyan); background:var(--nav-link-hover-bg); }
+
+/* ══ LAYOUT ══ */
+.container {
+  position:relative; z-index:1; max-width:1100px; margin:0 auto;
+  padding:6rem var(--container-px) var(--sp-2xl);
+}
+
+/* ══ HERO ══ */
+.hero { text-align:center; padding:var(--sp-2xl) 0 var(--sp-xl); animation:fadeUp 0.8s ease-out; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+.hero-badge {
+  display:inline-block; font-family:'Fira Code',monospace;
+  font-size:clamp(0.6rem,2vw,0.75rem); padding:0.4rem 1.2rem; border-radius:50px;
+  border:1px solid var(--glass-border); background:var(--tip-bg);
+  color:var(--cyan); letter-spacing:1px; margin-bottom:var(--sp-md); text-transform:uppercase;
+}
+.hero h1 {
+  font-family:'Orbitron',sans-serif; font-size:clamp(1.6rem,5vw,3.5rem);
+  font-weight:900; line-height:1.2;
+  background:var(--gradient-3); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  margin-bottom:var(--sp-sm);
+}
+.hero p { font-size:clamp(0.9rem,2.5vw,1.1rem); color:var(--text-muted); max-width:700px; margin:0 auto; }
+
+/* ══ SECTIONS ══ */
+section { margin-bottom:var(--sp-2xl); animation:fadeUp 0.6s ease-out both; }
+section h2 {
+  font-family:'Orbitron',sans-serif; font-size:clamp(1.15rem,3.5vw,1.6rem); font-weight:700;
+  margin-bottom:var(--sp-md); padding-bottom:0.8rem;
+  border-bottom:2px solid; border-image:var(--gradient-1) 1;
+  letter-spacing:1px; color:var(--text-heading);
+}
+section h2 .emoji { margin-right:0.5rem; }
+section h3 {
+  font-family:'Orbitron',sans-serif; font-size:clamp(0.9rem,2.5vw,1.1rem); font-weight:600;
+  color:var(--cyan); margin:var(--sp-lg) 0 var(--sp-sm); letter-spacing:0.5px;
+}
+section h4 { font-size:1rem; font-weight:600; color:var(--magenta); margin:var(--sp-md) 0 0.8rem; }
+p { margin-bottom:var(--sp-sm); }
+
+/* ══ GLASS CARDS ══ */
+.glass-card {
+  background:var(--card-bg); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border); border-radius:var(--card-radius);
+  padding:var(--card-px); margin-bottom:var(--sp-lg);
+  transition:border-color 0.3s,box-shadow 0.3s,background 0.4s;
+}
+.glass-card:hover { border-color:rgba(0,240,255,0.3); box-shadow:var(--shadow-card); }
+[data-theme="light"] .glass-card:hover { border-color:rgba(109,74,173,0.3); }
+
+/* ══ COMPARE GRID ══ */
+.compare-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-md); margin:var(--sp-md) 0; }
+.compare-card {
+  background:var(--card-bg); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--glass-border); border-radius:14px; padding:var(--sp-md);
+  position:relative; overflow:hidden; transition:background 0.4s,border-color 0.4s;
+}
+.compare-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+}
+.compare-card.js::before { background:var(--compare-js-bar); }
+.compare-card.py::before { background:var(--compare-py-bar); }
+.compare-card .tag {
+  font-family:'Fira Code',monospace; font-size:0.7rem; font-weight:600;
+  padding:0.25rem 0.8rem; border-radius:20px; display:inline-block;
+  margin-bottom:var(--sp-sm); text-transform:uppercase; letter-spacing:1px;
+}
+.compare-card.js .tag { background:var(--tag-js-bg); color:var(--cyan); border:1px solid var(--tag-js-border); }
+.compare-card.py .tag { background:var(--tag-py-bg); color:var(--magenta); border:1px solid var(--tag-py-border); }
+
+/* ══ CODE BLOCKS ══ */
+.code-block { position:relative; margin:var(--sp-md) 0; border-radius:12px; overflow:hidden; border:1px solid var(--code-border); }
+.code-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0.6rem 1rem; background:var(--code-header-bg);
+  border-bottom:1px solid var(--code-header-border);
+  font-family:'Fira Code',monospace; font-size:clamp(0.6rem,1.8vw,0.72rem);
+  color:var(--violet); letter-spacing:0.5px; gap:0.5rem;
+}
+.code-header .lang-tag {
+  padding:0.15rem 0.6rem; border-radius:10px; font-size:0.65rem;
+  font-weight:600; text-transform:uppercase; flex-shrink:0;
+}
+.code-header .lang-tag.js { background:var(--lang-js-bg); color:var(--cyan); }
+.code-header .lang-tag.py { background:var(--lang-py-bg); color:var(--magenta); }
+.code-header .lang-tag.math { background:rgba(139,92,246,0.15); color:var(--violet); }
+pre {
+  background:var(--code-bg); padding:var(--sp-sm) var(--sp-md); overflow-x:auto;
+  -webkit-overflow-scrolling:touch; font-family:'Fira Code',monospace;
+  font-size:clamp(0.68rem,1.8vw,0.82rem); line-height:1.8; color:var(--code-text);
+  scrollbar-width:thin;
+}
+pre code { font-family:inherit; }
+.kw { color:var(--syn-kw); } .fn { color:var(--syn-fn); } .str { color:var(--syn-str); }
+.cm { color:var(--syn-cm); font-style:italic; } .num { color:var(--syn-num); }
+.op { color:var(--syn-op); } .var { color:var(--syn-var); } .cls { color:var(--syn-cls); }
+
+/* ══ FORMULES MATHÉMATIQUES ══ */
+.formula-block {
+  background:var(--formula-bg); border:1px solid var(--formula-border);
+  border-radius:12px; padding:1.2rem 1.5rem; margin:var(--sp-md) 0;
+  font-family:'Fira Code',monospace; text-align:center; position:relative;
+  overflow:hidden;
+}
+.formula-block::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:var(--gradient-1);
+}
+.formula-block .formula-title {
+  font-family:'Orbitron',sans-serif; font-size:0.6rem; color:var(--violet);
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:0.6rem;
+  text-align:left;
+}
+.formula-block .formula-main {
+  font-size:clamp(0.9rem,2.5vw,1.15rem); color:var(--cyan); line-height:2;
+}
+.formula-block .formula-legend {
+  font-size:0.75rem; color:var(--text-muted); margin-top:0.6rem;
+  text-align:left; line-height:1.8;
+}
+.formula-block .formula-legend span { color:var(--magenta); }
+
+/* ══ TENSOR VIZ ══ */
+.tensor-viz {
+  display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+  gap:var(--sp-lg); margin:var(--sp-md) 0;
+}
+.tensor-item { text-align:center; }
+.tensor-item .tensor-label {
+  font-family:'Orbitron',sans-serif; font-size:0.62rem; color:var(--magenta);
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:0.4rem;
+}
+.tensor-item .tensor-sublabel {
+  font-family:'Fira Code',monospace; font-size:0.65rem; color:var(--text-muted);
+  margin-top:0.4rem;
+}
+.scalar-box {
+  width:60px; height:60px; background:var(--tensor-cell-bg);
+  border:2px solid var(--tensor-border); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Fira Code',monospace; font-size:1.1rem; color:var(--cyan);
+  margin:0 auto; box-shadow:0 0 12px rgba(0,240,255,0.15);
+}
+.vector-box {
+  display:flex; flex-direction:column; gap:3px; margin:0 auto;
+}
+.vector-cell {
+  width:60px; height:28px; background:var(--tensor-cell-bg);
+  border:1px solid var(--tensor-border); display:flex; align-items:center;
+  justify-content:center; font-family:'Fira Code',monospace;
+  font-size:0.8rem; color:var(--cyan);
+}
+.vector-cell:first-child { border-radius:6px 6px 0 0; }
+.vector-cell:last-child { border-radius:0 0 6px 6px; }
+.matrix-box { display:flex; flex-direction:column; gap:3px; margin:0 auto; }
+.matrix-row { display:flex; gap:3px; }
+.matrix-cell {
+  width:38px; height:32px; background:var(--tensor-cell-bg);
+  border:1px solid var(--tensor-border); display:flex; align-items:center;
+  justify-content:center; font-family:'Fira Code',monospace;
+  font-size:0.72rem; color:var(--violet);
+}
+.matrix-box .matrix-row:first-child .matrix-cell:first-child { border-radius:6px 0 0 0; }
+.matrix-box .matrix-row:first-child .matrix-cell:last-child { border-radius:0 6px 0 0; }
+.matrix-box .matrix-row:last-child .matrix-cell:first-child { border-radius:0 0 0 6px; }
+.matrix-box .matrix-row:last-child .matrix-cell:last-child { border-radius:0 0 6px 0; }
+.tensor3d-box { perspective:200px; display:flex; flex-direction:column; gap:2px; }
+.t3d-layer {
+  display:flex; gap:2px; transform:rotateX(15deg) rotateY(-12deg);
+  transform-style:preserve-3d;
+}
+.t3d-cell {
+  width:30px; height:26px; border:1px solid rgba(255,0,229,0.4);
+  background:rgba(255,0,229,0.08); display:flex; align-items:center;
+  justify-content:center; font-family:'Fira Code',monospace;
+  font-size:0.58rem; color:var(--magenta);
+}
+
+/* ══ SHAPE DEMO ══ */
+.shape-demo {
+  background:var(--math-bg); border:1px solid var(--math-border);
+  border-radius:12px; padding:var(--sp-md); margin:var(--sp-md) 0;
+}
+.shape-row {
+  display:flex; align-items:center; gap:var(--sp-md);
+  padding:0.6rem 0; border-bottom:1px solid var(--table-row-border);
+  flex-wrap:wrap;
+}
+.shape-row:last-child { border-bottom:none; }
+.shape-tag {
+  font-family:'Fira Code',monospace; font-size:0.8rem; color:var(--cyan);
+  background:var(--tag-js-bg); border:1px solid var(--tag-js-border);
+  padding:0.2rem 0.7rem; border-radius:20px; flex-shrink:0; min-width:7rem; text-align:center;
+}
+.shape-desc { font-size:0.88rem; color:var(--text-muted); flex:1; min-width:140px; }
+.shape-example { font-family:'Fira Code',monospace; font-size:0.75rem; color:var(--magenta); flex-shrink:0; }
+
+/* ══ PIPELINE DIAGRAM ══ */
+.pipeline {
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(110px,1fr));
+  gap:var(--sp-sm); margin:var(--sp-lg) 0;
+}
+.pipeline-step {
+  background:var(--card-bg); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border:1px solid var(--glass-border); border-radius:12px; padding:var(--sp-sm);
+  text-align:center; transition:all 0.3s;
+}
+.pipeline-step:hover { border-color:var(--cyan); transform:translateY(-3px); box-shadow:var(--pipeline-hover-shadow); }
+.pipeline-step .step-num { font-family:'Orbitron',sans-serif; font-size:0.6rem; color:var(--magenta); letter-spacing:1px; margin-bottom:0.3rem; }
+.pipeline-step .step-title { font-weight:600; font-size:clamp(0.75rem,2vw,0.85rem); color:var(--cyan); }
+.pipeline-step .step-desc { font-size:clamp(0.65rem,1.5vw,0.72rem); color:var(--text-muted); margin-top:0.2rem; }
+
+/* ══ COMPARAISON ALGO TABLES ══ */
+.algo-table {
+  width:100%; border-collapse:separate; border-spacing:0;
+  margin:var(--sp-md) 0; border-radius:12px; overflow:hidden;
+  border:1px solid var(--glass-border);
+}
+.algo-table thead { background:var(--table-header-bg); }
+.algo-table th {
+  font-family:'Orbitron',sans-serif; font-size:0.72rem; text-transform:uppercase;
+  letter-spacing:1px; padding:0.8rem 1rem; text-align:left; color:var(--violet);
+  border-bottom:1px solid var(--glass-border);
+}
+.algo-table td {
+  padding:0.8rem 1rem; font-size:0.88rem; border-bottom:1px solid var(--table-row-border);
+  vertical-align:top;
+}
+.algo-table tbody tr { background:var(--card-bg); transition:background 0.2s; }
+.algo-table tbody tr:hover { background:var(--table-row-hover); }
+.algo-table tbody tr:last-child td { border-bottom:none; }
+
+/* ══ TIP BOXES ══ */
+.tip-box {
+  border-left:3px solid var(--cyan); background:var(--tip-bg);
+  padding:var(--sp-sm) var(--sp-md); border-radius:0 12px 12px 0; margin:var(--sp-md) 0;
+}
+.tip-box.warning { border-left-color:var(--magenta); background:var(--tip-warn-bg); }
+.tip-box .tip-title {
+  font-family:'Orbitron',sans-serif; font-size:0.78rem; color:var(--cyan);
+  margin-bottom:0.4rem; letter-spacing:1px; text-transform:uppercase;
+}
+.tip-box.warning .tip-title { color:var(--magenta); }
+
+/* ══ BACKPROP VISUAL ══ */
+.backprop-flow {
+  display:flex; align-items:stretch; gap:0; margin:var(--sp-lg) 0;
+  overflow-x:auto; -webkit-overflow-scrolling:touch;
+}
+.bp-step {
+  background:var(--card-bg); border:1px solid var(--glass-border);
+  border-radius:12px; padding:var(--sp-md); flex:1; min-width:140px;
+  text-align:center; position:relative;
+}
+.bp-step + .bp-step { margin-left:8px; }
+.bp-step + .bp-step::before {
+  content:'→'; position:absolute; left:-14px; top:50%; transform:translateY(-50%);
+  color:var(--cyan); font-size:1rem; z-index:1;
+}
+.bp-step .bp-num {
+  font-family:'Orbitron',sans-serif; font-size:0.55rem; color:var(--magenta);
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:0.4rem;
+}
+.bp-step .bp-title {
+  font-family:'Orbitron',sans-serif; font-size:0.75rem; color:var(--cyan);
+  margin-bottom:0.5rem; font-weight:600;
+}
+.bp-step .bp-desc { font-size:0.78rem; color:var(--text-muted); line-height:1.5; }
+.bp-step .bp-formula {
+  font-family:'Fira Code',monospace; font-size:0.72rem;
+  color:var(--violet); margin-top:0.6rem; background:var(--code-header-bg);
+  padding:0.3rem 0.5rem; border-radius:6px; display:inline-block;
+}
+
+/* ══ OPTIMISER CARD ══ */
+.optim-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:var(--sp-md); margin:var(--sp-md) 0; }
+.optim-card {
+  background:var(--card-bg); border:1px solid var(--glass-border);
+  border-radius:14px; padding:var(--sp-md); position:relative; overflow:hidden;
+  transition:border-color 0.3s,box-shadow 0.3s;
+}
+.optim-card:hover { border-color:rgba(0,240,255,0.3); box-shadow:var(--shadow-card); }
+.optim-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.optim-card.sgd::before { background:linear-gradient(90deg,#00f0ff,#8b5cf6); }
+.optim-card.adam::before { background:linear-gradient(90deg,#ff00e5,#8b5cf6); }
+.optim-card.rms::before { background:linear-gradient(90deg,#fbbf24,#ff00e5); }
+.optim-card.adamw::before { background:linear-gradient(90deg,#00f0ff,#ff00e5); }
+.optim-card .optim-name {
+  font-family:'Orbitron',sans-serif; font-size:0.9rem; font-weight:700;
+  color:var(--cyan); margin-bottom:0.4rem;
+}
+.optim-card .optim-badge {
+  font-family:'Fira Code',monospace; font-size:0.62rem;
+  padding:0.15rem 0.6rem; border-radius:20px; display:inline-block;
+  margin-bottom:0.8rem; background:var(--tag-js-bg);
+  border:1px solid var(--tag-js-border); color:var(--text-muted);
+}
+.optim-card .optim-desc { font-size:0.82rem; color:var(--text-muted); line-height:1.55; margin-bottom:0.8rem; }
+.optim-card .optim-formula {
+  font-family:'Fira Code',monospace; font-size:0.7rem; color:var(--violet);
+  background:var(--code-header-bg); padding:0.5rem; border-radius:6px; line-height:1.7;
+}
+.optim-card .optim-when { font-size:0.78rem; color:var(--magenta); margin-top:0.6rem; font-style:italic; }
+
+/* ══ NOTATION TABLE ══ */
+.notation-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:var(--sp-sm); margin:var(--sp-md) 0;
+}
+.notation-item {
+  background:var(--math-bg); border:1px solid var(--math-border);
+  border-radius:10px; padding:0.8rem 1rem;
+  display:flex; align-items:center; gap:0.8rem;
+}
+.notation-sym {
+  font-family:'Fira Code',monospace; font-size:1rem; color:var(--cyan);
+  flex-shrink:0; min-width:2.5rem; text-align:center;
+}
+.notation-def { font-size:0.82rem; color:var(--text-muted); line-height:1.4; }
+
+/* ══ LISTS ══ */
+ul, ol { margin:0.8rem 0 1.2rem 1.5rem; }
+li { margin-bottom:0.5rem; color:var(--text); }
+li::marker { color:var(--violet); }
+strong { color:var(--cyan); font-weight:600; }
+em { color:var(--text-muted); }
+code:not(pre code) {
+  font-family:'Fira Code',monospace; font-size:0.85em;
+  background:var(--code-header-bg); padding:0.15em 0.4em;
+  border-radius:4px; color:var(--violet);
+}
+
+/* ══ FOOTER ══ */
+footer {
+  text-align:center; padding:var(--sp-xl) 0 var(--sp-lg);
+  border-top:1px solid var(--glass-border); color:var(--text-muted); font-size:0.82rem;
+}
+footer span { background:var(--gradient-3); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-weight:600; }
+
+/* ══ FADE IN ══ */
+.fade-section { opacity:0; transform:translateY(25px); transition:opacity 0.7s ease,transform 0.7s ease; }
+.fade-section.visible { opacity:1; transform:translateY(0); }
+
+/* ══════ RESPONSIVE ══════ */
+@media (max-width:900px) {
+  :root { --container-px:1.5rem; --card-px:1.5rem; --sp-2xl:3rem; }
+  .compare-grid { grid-template-columns:1fr; }
+  .backprop-flow { flex-direction:column; gap:var(--sp-sm); }
+  .bp-step + .bp-step { margin-left:0; }
+  .bp-step + .bp-step::before { content:'↓'; left:50%; top:-18px; transform:translateX(-50%); }
+  .algo-table th, .algo-table td { padding:0.7rem 0.8rem; font-size:0.82rem; }
+  .algo-table th { font-size:0.65rem; }
+}
+
+@media (max-width:640px) {
+  :root {
+    --container-px:1rem; --card-px:1.1rem; --card-radius:12px;
+    --sp-xs:0.35rem; --sp-sm:0.75rem; --sp-md:1rem; --sp-lg:1.5rem;
+    --sp-xl:2rem; --sp-2xl:2.5rem;
+  }
+  body { line-height:1.65; }
+  .nav-toggle { display:block; }
+  nav { flex-wrap:wrap; padding:0.7rem var(--container-px); gap:0; }
+  nav .logo { margin-right:auto; }
+  .nav-right { gap:0.6rem; }
+  nav ul {
+    display:none; width:100%; flex-direction:column;
+    padding-top:0.8rem; gap:0.15rem; order:10;
+  }
+  nav ul.open { display:flex; }
+  nav a { font-size:0.85rem; padding:0.6rem 0.8rem; border-radius:8px; display:block; }
+
+  .hero { padding:var(--sp-xl) 0 var(--sp-lg); }
+  .hero-badge { padding:0.3rem 0.9rem; font-size:0.58rem; }
+  .hero p { font-size:0.92rem; }
+
+  .glass-card { border-radius:var(--card-radius); margin-left:-0.25rem; margin-right:-0.25rem; }
+  .compare-card { padding:var(--sp-sm); border-radius:10px; }
+
+  .code-block { margin-left:calc(var(--card-px)*-1); margin-right:calc(var(--card-px)*-1); border-radius:0; border-left:none; border-right:none; }
+  .code-header { padding:0.5rem 0.8rem; font-size:0.6rem; }
+  pre { padding:0.8rem; font-size:0.68rem; line-height:1.7; tab-size:2; }
+
+  .tensor-viz { gap:var(--sp-md); }
+  .pipeline { grid-template-columns:1fr 1fr; gap:0.6rem; }
+  .pipeline-step { padding:0.7rem 0.5rem; border-radius:10px; }
+  .optim-grid { grid-template-columns:1fr; }
+
+  .algo-table, .algo-table thead, .algo-table tbody, .algo-table th, .algo-table td, .algo-table tr { display:block; }
+  .algo-table { border:none; border-radius:0; background:none; }
+  .algo-table thead { display:none; }
+  .algo-table tbody tr {
+    background:var(--card-bg); border:1px solid var(--glass-border);
+    border-radius:12px; margin-bottom:0.8rem; padding:0.6rem 0; display:block; overflow:hidden;
+  }
+  .algo-table tbody tr:last-child { margin-bottom:0; }
+  .algo-table td {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:0.6rem; padding:0.55rem 1rem; font-size:0.82rem;
+    border-bottom:1px solid var(--table-row-border); text-align:right;
+  }
+  .algo-table td::before {
+    content:attr(data-label); font-family:'Orbitron',sans-serif; font-size:0.6rem;
+    font-weight:600; color:var(--violet); text-transform:uppercase; letter-spacing:0.5px;
+    flex-shrink:0; text-align:left; padding-top:0.15rem; min-width:5.5rem;
+  }
+  .algo-table tbody tr:hover { background:var(--card-bg); }
+
+  .formula-block { padding:0.9rem 1rem; }
+  .formula-block .formula-main { font-size:0.85rem; }
+  section { margin-bottom:var(--sp-xl); }
+  footer { padding:var(--sp-lg) 0; font-size:0.78rem; }
+}
+
+@media (max-width:380px) {
+  :root { --container-px:0.75rem; --card-px:0.8rem; }
+  .hero h1 { font-size:1.4rem; }
+  nav .logo { font-size:0.9rem; letter-spacing:1px; }
+  pre { font-size:0.62rem; padding:0.6rem; line-height:1.6; }
+  .pipeline { grid-template-columns:1fr; }
+  .algo-table td { flex-direction:column; text-align:left; gap:0.2rem; padding:0.5rem 0.8rem; }
+  .algo-table td::before { margin-bottom:0.1rem; }
+}
+
+@media (min-width:1200px) {
+  :root { --container-px:3rem; --card-px:2.5rem; }
+}
+
+@media (hover:none) {
+  .glass-card:hover { border-color:var(--glass-border); box-shadow:none; }
+  .pipeline-step:hover { transform:none; box-shadow:none; border-color:var(--glass-border); }
+}
+
+@media print {
+  body::before, .grid-overlay, nav { display:none; }
+  .container { padding:1rem; }
+  .glass-card { border:1px solid #333; backdrop-filter:none; }
+  .fade-section { opacity:1; transform:none; }
+  pre { white-space:pre-wrap; word-break:break-all; }
+}
+</style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<nav>
+  <div class="logo">MATH:ML</div>
+  <div class="nav-right">
+    <button class="theme-toggle" id="themeToggle" aria-label="Basculer le thème">
+      <span class="toggle-icon icon-moon">🌙</span>
+      <span class="toggle-icon icon-sun">☀️</span>
+    </button>
+    <button class="nav-toggle" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <ul id="nav-menu">
+    <li><a href="#tenseurs">Tenseurs</a></li>
+    <li><a href="#shape">Shape & Batch</a></li>
+    <li><a href="#graphe">Graphe de calcul</a></li>
+    <li><a href="#backprop">Backpropagation</a></li>
+    <li><a href="#optimiseurs">Optimiseurs</a></li>
+    <li><a href="#recap">Récap</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+
+<div class="hero">
+  <div class="hero-badge">Mathématiques du Deep Learning • Tenseurs • Backprop • Optimiseurs</div>
+  <h1>Mécanique Mathématique<br>du Deep Learning</h1>
+  <p>Comprendre les structures de données, les graphes de calcul, la rétropropagation et les algorithmes d'optimisation — du concept à la formule, en JS et Python.</p>
+</div>
+
+<!-- ══════════ SECTION 1 : TENSEURS ══════════ -->
+<section id="tenseurs" class="fade-section">
+  <h2><span class="emoji">📐</span> 3.1 — Les Tenseurs</h2>
+
+  <div class="glass-card">
+    <p>Un <strong>tenseur</strong> est la généralisation mathématique du concept de tableau à n dimensions. C'est la brique atomique du machine learning : toutes les données, tous les poids d'un réseau, toutes les activations sont représentés sous forme de tenseurs.</p>
+
+    <h3>La hiérarchie des tenseurs</h3>
+
+    <div class="tensor-viz">
+      <div class="tensor-item">
+        <div class="tensor-label">Scalaire — Rang 0</div>
+        <div class="scalar-box">42</div>
+        <div class="tensor-sublabel">Shape : []<br>0 dimension</div>
+      </div>
+      <div class="tensor-item">
+        <div class="tensor-label">Vecteur — Rang 1</div>
+        <div class="vector-box">
+          <div class="vector-cell">1</div>
+          <div class="vector-cell">2</div>
+          <div class="vector-cell">3</div>
+          <div class="vector-cell">4</div>
+        </div>
+        <div class="tensor-sublabel">Shape : [4]<br>1 dimension</div>
+      </div>
+      <div class="tensor-item">
+        <div class="tensor-label">Matrice — Rang 2</div>
+        <div class="matrix-box">
+          <div class="matrix-row">
+            <div class="matrix-cell">1</div><div class="matrix-cell">2</div><div class="matrix-cell">3</div>
+          </div>
+          <div class="matrix-row">
+            <div class="matrix-cell">4</div><div class="matrix-cell">5</div><div class="matrix-cell">6</div>
+          </div>
+          <div class="matrix-row">
+            <div class="matrix-cell">7</div><div class="matrix-cell">8</div><div class="matrix-cell">9</div>
+          </div>
+        </div>
+        <div class="tensor-sublabel">Shape : [3, 3]<br>2 dimensions</div>
+      </div>
+      <div class="tensor-item">
+        <div class="tensor-label">Tenseur 3D — Rang 3</div>
+        <div class="tensor3d-box">
+          <div class="t3d-layer">
+            <div class="t3d-cell">·</div><div class="t3d-cell">·</div><div class="t3d-cell">·</div>
+          </div>
+          <div class="t3d-layer" style="margin-top:4px;">
+            <div class="t3d-cell">·</div><div class="t3d-cell">·</div><div class="t3d-cell">·</div>
+          </div>
+          <div class="t3d-layer" style="margin-top:4px;">
+            <div class="t3d-cell">·</div><div class="t3d-cell">·</div><div class="t3d-cell">·</div>
+          </div>
+        </div>
+        <div class="tensor-sublabel">Shape : [3, 3, 3]<br>3 dimensions</div>
+      </div>
+    </div>
+
+    <h3>Pourquoi des tenseurs ?</h3>
+    <p>Le choix du tenseur n'est pas arbitraire. Il reflète directement la <strong>structure mathématique des données</strong> :</p>
+    <ul>
+      <li><strong>Un seul nombre</strong> (température, score) → scalaire de rang 0</li>
+      <li><strong>Un vecteur de features</strong> (taille, poids, âge) → rang 1</li>
+      <li><strong>Un lot d'exemples</strong> (N lignes × M features) → matrice de rang 2</li>
+      <li><strong>Une image RGB</strong> (hauteur × largeur × 3 canaux) → rang 3</li>
+      <li><strong>Un lot d'images</strong> (batch × hauteur × largeur × canaux) → rang 4</li>
+    </ul>
+
+    <div class="tip-box">
+      <div class="tip-title">💡 Intuition géométrique</div>
+      <p>Imagine qu'un scalaire est un point. Un vecteur est une ligne. Une matrice est une feuille de papier. Un tenseur 3D est un cube. La <strong>shape</strong> dit combien de cases il y a dans chaque direction.</p>
+    </div>
+
+    <h3>Les opérations fondamentales</h3>
+    <p>Toutes les opérations du deep learning se résument à quelques opérations algébriques de base sur les tenseurs :</p>
+
+    <div class="formula-block">
+      <div class="formula-title">Multiplication Matricielle — le cœur d'une couche Dense</div>
+      <div class="formula-main">Y = X · W + b</div>
+      <div class="formula-legend">
+        <span>X</span> = tenseur d'entrée [batch, in_features]<br>
+        <span>W</span> = matrice de poids [in_features, out_features]<br>
+        <span>b</span> = vecteur de biais [out_features]<br>
+        <span>Y</span> = tenseur de sortie [batch, out_features]
+      </div>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-card js">
+        <div class="tag">TensorFlow.js</div>
+        <div class="code-block">
+          <div class="code-header">Operations tenseurs<span class="lang-tag js">JS</span></div>
+          <pre><code><span class="cm">// Créer des tenseurs</span>
+<span class="kw">const</span> <span class="var">scalar</span> <span class="op">=</span> tf.<span class="fn">scalar</span>(<span class="num">42</span>);
+<span class="kw">const</span> <span class="var">v</span>      <span class="op">=</span> tf.<span class="fn">tensor1d</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]);
+<span class="kw">const</span> <span class="var">m</span>      <span class="op">=</span> tf.<span class="fn">tensor2d</span>([[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>,<span class="num">4</span>]]);
+
+<span class="cm">// Opérations de base</span>
+<span class="kw">const</span> <span class="var">a</span> <span class="op">=</span> tf.<span class="fn">tensor2d</span>([[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>,<span class="num">4</span>]]);
+<span class="kw">const</span> <span class="var">b</span> <span class="op">=</span> tf.<span class="fn">tensor2d</span>([[<span class="num">5</span>,<span class="num">6</span>],[<span class="num">7</span>,<span class="num">8</span>]]);
+
+<span class="var">a</span>.<span class="fn">add</span>(<span class="var">b</span>).<span class="fn">print</span>();     <span class="cm">// Addition</span>
+<span class="var">a</span>.<span class="fn">mul</span>(<span class="var">b</span>).<span class="fn">print</span>();     <span class="cm">// Élément par élément</span>
+<span class="var">a</span>.<span class="fn">matMul</span>(<span class="var">b</span>).<span class="fn">print</span>(); <span class="cm">// Produit matriciel Y=XW</span>
+
+<span class="cm">// Propriétés</span>
+console.<span class="fn">log</span>(<span class="var">m</span>.shape);  <span class="cm">// [2, 2]</span>
+console.<span class="fn">log</span>(<span class="var">m</span>.dtype);  <span class="cm">// 'float32'</span>
+console.<span class="fn">log</span>(<span class="var">m</span>.rank);   <span class="cm">// 2</span></code></pre>
+        </div>
+      </div>
+      <div class="compare-card py">
+        <div class="tag">TensorFlow Python</div>
+        <div class="code-block">
+          <div class="code-header">Operations tenseurs<span class="lang-tag py">Python</span></div>
+          <pre><code><span class="kw">import</span> <span class="cls">tensorflow</span> <span class="kw">as</span> <span class="var">tf</span>
+
+<span class="cm"># Créer des tenseurs</span>
+<span class="var">scalar</span> <span class="op">=</span> tf.<span class="fn">constant</span>(<span class="num">42</span>)
+<span class="var">v</span>      <span class="op">=</span> tf.<span class="fn">constant</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>])
+<span class="var">m</span>      <span class="op">=</span> tf.<span class="fn">constant</span>([[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>,<span class="num">4</span>]])
+
+<span class="cm"># Opérations de base</span>
+<span class="var">a</span> <span class="op">=</span> tf.<span class="fn">constant</span>([[<span class="num">1.</span>,<span class="num">2.</span>],[<span class="num">3.</span>,<span class="num">4.</span>]])
+<span class="var">b</span> <span class="op">=</span> tf.<span class="fn">constant</span>([[<span class="num">5.</span>,<span class="num">6.</span>],[<span class="num">7.</span>,<span class="num">8.</span>]])
+
+tf.<span class="fn">add</span>(<span class="var">a</span>, <span class="var">b</span>)            <span class="cm"># Addition</span>
+tf.<span class="fn">multiply</span>(<span class="var">a</span>, <span class="var">b</span>)       <span class="cm"># Élément par élément</span>
+tf.<span class="fn">matmul</span>(<span class="var">a</span>, <span class="var">b</span>)         <span class="cm"># Produit matriciel Y=XW</span>
+
+<span class="cm"># Propriétés</span>
+<span class="fn">print</span>(<span class="var">m</span>.shape)            <span class="cm"># TensorShape([2, 2])</span>
+<span class="fn">print</span>(<span class="var">m</span>.dtype)            <span class="cm"># &lt;dtype: 'int32'&gt;</span>
+<span class="fn">print</span>(<span class="var">m</span>.ndim)             <span class="cm"># 2</span></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box warning">
+      <div class="tip-title">⚠️ Compatibilité de shapes</div>
+      <p>En algèbre linéaire, on ne peut multiplier <code>A · B</code> que si le nombre de <em>colonnes</em> de A = nombre de <em>lignes</em> de B. Exemple : <code>[32, 64] · [64, 10]</code> → valide, donne <code>[32, 10]</code>. Si les shapes sont incompatibles, TensorFlow lève une erreur immédiate.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ SECTION 2 : SHAPE, DTYPE, BATCH ══════════ -->
+<section id="shape" class="fade-section">
+  <h2><span class="emoji">📦</span> 3.2 — Shape, dtype et Batch</h2>
+
+  <div class="glass-card">
+    <p>Trois attributs à maîtriser absolument. La plupart des erreurs TensorFlow viennent d'une confusion sur ces trois notions.</p>
+
+    <h3>La Shape — lire et interpréter</h3>
+    <p>La shape est une liste d'entiers qui décrit les dimensions d'un tenseur. Se lit de <strong>gauche (extérieur) à droite (intérieur)</strong>.</p>
+
+    <div class="shape-demo">
+      <div class="shape-row">
+        <div class="shape-tag">[]</div>
+        <div class="shape-desc">Scalaire — un seul nombre</div>
+        <div class="shape-example">tf.scalar(3.14)</div>
+      </div>
+      <div class="shape-row">
+        <div class="shape-tag">[4]</div>
+        <div class="shape-desc">Vecteur de 4 éléments</div>
+        <div class="shape-example">tf.tensor1d([1,2,3,4])</div>
+      </div>
+      <div class="shape-row">
+        <div class="shape-tag">[32, 10]</div>
+        <div class="shape-desc">Batch de 32 exemples, 10 features chacun</div>
+        <div class="shape-example">entrée Dense classique</div>
+      </div>
+      <div class="shape-row">
+        <div class="shape-tag">[28, 28, 1]</div>
+        <div class="shape-desc">Image en niveaux de gris 28×28</div>
+        <div class="shape-example">MNIST un seul sample</div>
+      </div>
+      <div class="shape-row">
+        <div class="shape-tag">[64, 28, 28, 3]</div>
+        <div class="shape-desc">Batch de 64 images RGB 28×28</div>
+        <div class="shape-example">batch_size × H × W × canaux</div>
+      </div>
+      <div class="shape-row">
+        <div class="shape-tag">[32, 50, 1]</div>
+        <div class="shape-desc">Batch 32, séquence de 50 pas, 1 feature</div>
+        <div class="shape-example">batch × timesteps × features (LSTM)</div>
+      </div>
+    </div>
+
+    <h3>Le dtype — précision numérique</h3>
+    <p>Le type de données détermine la <strong>précision</strong> et la <strong>plage de valeurs</strong> possibles. Un mauvais dtype peut silencieusement produire des résultats faux.</p>
+
+    <table class="algo-table">
+      <thead>
+        <tr>
+          <th>dtype</th>
+          <th>Bits</th>
+          <th>Cas d'usage</th>
+          <th>Précision</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label="dtype"><code>float32</code></td>
+          <td data-label="Bits">32</td>
+          <td data-label="Cas d'usage"><strong>Par défaut pour les poids</strong> et activations. Standard en ML.</td>
+          <td data-label="Précision">~7 chiffres significatifs</td>
+        </tr>
+        <tr>
+          <td data-label="dtype"><code>float16</code></td>
+          <td data-label="Bits">16</td>
+          <td data-label="Cas d'usage">GPU modernes, mixed precision training. 2× plus rapide.</td>
+          <td data-label="Précision">~3 chiffres — risque d'overflow</td>
+        </tr>
+        <tr>
+          <td data-label="dtype"><code>float64</code></td>
+          <td data-label="Bits">64</td>
+          <td data-label="Cas d'usage">Calculs scientifiques de haute précision. Rarement utile en DL.</td>
+          <td data-label="Précision">~15 chiffres significatifs</td>
+        </tr>
+        <tr>
+          <td data-label="dtype"><code>int32</code></td>
+          <td data-label="Bits">32</td>
+          <td data-label="Cas d'usage">Indices, labels, compteurs. Pas pour les poids.</td>
+          <td data-label="Précision">Entier exact ±2.1 milliards</td>
+        </tr>
+        <tr>
+          <td data-label="dtype"><code>bool</code></td>
+          <td data-label="Bits">8</td>
+          <td data-label="Cas d'usage">Masques, conditions, filtres sur tenseurs.</td>
+          <td data-label="Précision">True / False uniquement</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Le Batch — traiter en paquets</h3>
+    <p>Au lieu de traiter les exemples un par un, on les regroupe en <strong>batchs</strong>. Ce n'est pas qu'une optimisation : c'est mathématiquement fondamental pour l'estimation des gradients.</p>
+
+    <div class="formula-block">
+      <div class="formula-title">Descente de gradient stochastique — estimation du gradient</div>
+      <div class="formula-main">∇L ≈ (1/B) · Σᵢ ∇Lᵢ(θ)</div>
+      <div class="formula-legend">
+        <span>B</span> = taille du batch (batch size)<br>
+        <span>∇L</span> = gradient moyen de la loss sur le batch<br>
+        <span>∇Lᵢ</span> = gradient de la loss sur l'exemple i<br>
+        <span>θ</span> = paramètres du modèle (poids + biais)
+      </div>
+    </div>
+
+    <p>Plus le batch est grand, plus l'estimation du gradient est précise (proche du vrai gradient), mais plus on consomme de mémoire GPU. Le compromis standard :</p>
+    <ul>
+      <li><strong>Batch size 32</strong> — bon équilibre bruit/vitesse pour la plupart des cas</li>
+      <li><strong>Batch size 64-256</strong> — entraînements plus stables, GPU large</li>
+      <li><strong>Batch size 1</strong> — SGD pur, très bruité mais parfois utile en online learning</li>
+    </ul>
+
+    <div class="tip-box">
+      <div class="tip-title">💡 Règle du pouce</div>
+      <p>Si le modèle ne converge pas, essaie de <strong>réduire le batch size</strong>. Un gradient plus bruité peut aider à sortir des minima locaux. Si l'entraînement est trop lent et la mémoire GPU disponible, <strong>augmente</strong> le batch size.</p>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-card js">
+        <div class="tag">TensorFlow.js</div>
+        <div class="code-block">
+          <div class="code-header">Inspecter shape & dtype<span class="lang-tag js">JS</span></div>
+          <pre><code><span class="kw">const</span> <span class="var">t</span> <span class="op">=</span> tf.<span class="fn">tensor3d</span>([
+  [[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>,<span class="num">4</span>]],
+  [[<span class="num">5</span>,<span class="num">6</span>],[<span class="num">7</span>,<span class="num">8</span>]]
+]);
+
+console.<span class="fn">log</span>(<span class="var">t</span>.shape);   <span class="cm">// [2, 2, 2]</span>
+console.<span class="fn">log</span>(<span class="var">t</span>.dtype);   <span class="cm">// float32</span>
+console.<span class="fn">log</span>(<span class="var">t</span>.rank);    <span class="cm">// 3</span>
+console.<span class="fn">log</span>(<span class="var">t</span>.size);    <span class="cm">// 8 (nb total d'éléments)</span>
+
+<span class="cm">// Changer de dtype</span>
+<span class="kw">const</span> <span class="var">tInt</span> <span class="op">=</span> <span class="var">t</span>.<span class="fn">cast</span>(<span class="str">'int32'</span>);
+
+<span class="cm">// Reshape — changer la forme sans changer les données</span>
+<span class="kw">const</span> <span class="var">flat</span> <span class="op">=</span> <span class="var">t</span>.<span class="fn">reshape</span>([<span class="num">8</span>]);  <span class="cm">// [2,2,2] → [8]</span>
+<span class="kw">const</span> <span class="var">mat</span>  <span class="op">=</span> <span class="var">t</span>.<span class="fn">reshape</span>([<span class="num">4</span>,<span class="num">2</span>]); <span class="cm">// [2,2,2] → [4,2]</span></code></pre>
+        </div>
+      </div>
+      <div class="compare-card py">
+        <div class="tag">TensorFlow Python</div>
+        <div class="code-block">
+          <div class="code-header">Inspecter shape & dtype<span class="lang-tag py">Python</span></div>
+          <pre><code><span class="kw">import</span> <span class="cls">tensorflow</span> <span class="kw">as</span> <span class="var">tf</span>
+
+<span class="var">t</span> <span class="op">=</span> tf.<span class="fn">constant</span>([
+  [[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>,<span class="num">4</span>]],
+  [[<span class="num">5</span>,<span class="num">6</span>],[<span class="num">7</span>,<span class="num">8</span>]]
+])
+
+<span class="fn">print</span>(<span class="var">t</span>.shape)     <span class="cm"># TensorShape([2, 2, 2])</span>
+<span class="fn">print</span>(<span class="var">t</span>.dtype)     <span class="cm"># &lt;dtype: 'int32'&gt;</span>
+<span class="fn">print</span>(<span class="var">t</span>.ndim)      <span class="cm"># 3</span>
+<span class="fn">print</span>(tf.<span class="fn">size</span>(<span class="var">t</span>))  <span class="cm"># 8</span>
+
+<span class="cm"># Changer de dtype</span>
+<span class="var">t_float</span> <span class="op">=</span> tf.<span class="fn">cast</span>(<span class="var">t</span>, tf.float32)
+
+<span class="cm"># Reshape</span>
+<span class="var">flat</span> <span class="op">=</span> tf.<span class="fn">reshape</span>(<span class="var">t</span>, [<span class="num">8</span>])     <span class="cm"># [2,2,2] → [8]</span>
+<span class="var">mat</span>  <span class="op">=</span> tf.<span class="fn">reshape</span>(<span class="var">t</span>, [<span class="num">4</span>,<span class="num">2</span>])   <span class="cm"># [2,2,2] → [4,2]</span>
+<span class="cm"># -1 = dimension inférée automatiquement</span>
+<span class="var">auto</span> <span class="op">=</span> tf.<span class="fn">reshape</span>(<span class="var">t</span>, [<span class="num">2</span>,<span class="op">-</span><span class="num">1</span>])  <span class="cm"># → [2, 4]</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ SECTION 3 : GRAPHE DE CALCUL ══════════ -->
+<section id="graphe" class="fade-section">
+  <h2><span class="emoji">🔗</span> 3.3 — Le Graphe de Calcul &amp; Eager Execution</h2>
+
+  <div class="glass-card">
+    <p>TensorFlow construit une <strong>représentation interne</strong> de tous les calculs avant de les exécuter. Cette représentation est un <strong>graphe orienté acyclique (DAG)</strong>.</p>
+
+    <h3>Qu'est-ce qu'un graphe de calcul ?</h3>
+    <p>Chaque opération mathématique devient un <strong>nœud</strong> du graphe. Les tenseurs qui circulent d'une opération à l'autre sont les <strong>arêtes</strong>. Cette structure permet à TensorFlow de :</p>
+    <ul>
+      <li><strong>Optimiser automatiquement</strong> — réordonner les opérations pour maximiser le parallélisme GPU</li>
+      <li><strong>Calculer les gradients</strong> — en "remontant" le graphe dans le sens inverse (c'est la backpropagation)</li>
+      <li><strong>Compiler et déployer</strong> — exporter le graphe figé pour la production</li>
+    </ul>
+
+    <div class="formula-block">
+      <div class="formula-title">Exemple de graphe — calcul de y = relu(x·W + b)</div>
+      <div class="formula-main" style="font-size:0.9rem; line-height:2.2;">
+        x → [matMul(W)] → z₁ → [add(b)] → z₂ → [relu] → y
+      </div>
+      <div class="formula-legend">
+        Chaque → représente un tenseur qui circule.<br>
+        Chaque <span>[opération]</span> est un nœud du graphe.<br>
+        En backward : le gradient remonte de y vers x, en passant par chaque nœud.
+      </div>
+    </div>
+
+    <h3>Eager vs Graph — le duel</h3>
+    <div class="compare-grid">
+      <div class="compare-card js">
+        <div class="tag">Eager Execution (TF2 par défaut)</div>
+        <p>Les opérations s'exécutent <strong>immédiatement</strong>, ligne par ligne, comme du code normal. Tu peux inspecter les valeurs à n'importe quel moment avec <code>.print()</code> ou <code>print()</code>.</p>
+        <ul style="margin-top:0.5rem;">
+          <li>✅ Debugging facile</li>
+          <li>✅ Comportement intuitif</li>
+          <li>⚠️ Moins optimisé pour la production</li>
+        </ul>
+      </div>
+      <div class="compare-card py">
+        <div class="tag">@tf.function — Mode Graphe</div>
+        <p>Le décorateur <code>@tf.function</code> convertit une fonction Python en graphe TF optimisé. TF trace l'exécution une fois, compile, puis réutilise le graphe compilé.</p>
+        <ul style="margin-top:0.5rem;">
+          <li>✅ 2× à 10× plus rapide en production</li>
+          <li>✅ Exportable (SavedModel)</li>
+          <li>⚠️ Debugging plus complexe</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-card js">
+        <div class="tag">TensorFlow.js</div>
+        <div class="code-block">
+          <div class="code-header">Eager (défaut en TF.js)<span class="lang-tag js">JS</span></div>
+          <pre><code><span class="cm">// Eager : tout s'exécute immédiatement</span>
+<span class="kw">const</span> <span class="var">x</span> <span class="op">=</span> tf.<span class="fn">tensor2d</span>([[<span class="num">1</span>,<span class="num">2</span>],[<span class="num">3</span>,<span class="num">4</span>]]);
+<span class="kw">const</span> <span class="var">W</span> <span class="op">=</span> tf.<span class="fn">tensor2d</span>([[<span class="num">0.5</span>,<span class="num">0</span>],[<span class="num">0</span>,<span class="num">0.5</span>]]);
+<span class="kw">const</span> <span class="var">b</span> <span class="op">=</span> tf.<span class="fn">tensor1d</span>([<span class="num">1</span>,<span class="num">1</span>]);
+
+<span class="kw">const</span> <span class="var">z</span>  <span class="op">=</span> <span class="var">x</span>.<span class="fn">matMul</span>(<span class="var">W</span>);      <span class="cm">// calculé ici</span>
+<span class="var">z</span>.<span class="fn">print</span>();                    <span class="cm">// tu peux l'inspecter</span>
+
+<span class="kw">const</span> <span class="var">z2</span> <span class="op">=</span> <span class="var">z</span>.<span class="fn">add</span>(<span class="var">b</span>);          <span class="cm">// calculé ici</span>
+<span class="kw">const</span> <span class="var">y</span>  <span class="op">=</span> <span class="var">z2</span>.<span class="fn">relu</span>();         <span class="cm">// calculé ici</span>
+<span class="var">y</span>.<span class="fn">print</span>();                    <span class="cm">// résultat final</span></code></pre>
+        </div>
+      </div>
+      <div class="compare-card py">
+        <div class="tag">TensorFlow Python</div>
+        <div class="code-block">
+          <div class="code-header">@tf.function — graphe compilé<span class="lang-tag py">Python</span></div>
+          <pre><code><span class="kw">import</span> <span class="cls">tensorflow</span> <span class="kw">as</span> <span class="var">tf</span>
+
+<span class="cm"># Eager (par défaut — TF2)</span>
+<span class="var">x</span> <span class="op">=</span> tf.<span class="fn">constant</span>([[<span class="num">1.</span>,<span class="num">2.</span>]])
+<span class="var">W</span> <span class="op">=</span> tf.<span class="fn">constant</span>([[<span class="num">0.5</span>],[<span class="num">0.5</span>]])
+<span class="var">b</span> <span class="op">=</span> tf.<span class="fn">constant</span>([<span class="num">1.</span>])
+<span class="var">z</span> <span class="op">=</span> tf.<span class="fn">matmul</span>(<span class="var">x</span>, <span class="var">W</span>) <span class="op">+</span> <span class="var">b</span>
+<span class="fn">print</span>(<span class="var">z</span>)  <span class="cm"># tf.Tensor([[2.5]], ...)</span>
+
+<span class="cm"># Mode graphe avec @tf.function</span>
+<span class="op">@</span>tf.<span class="fn">function</span>
+<span class="kw">def</span> <span class="fn">forward</span>(<span class="var">x</span>, <span class="var">W</span>, <span class="var">b</span>):
+  <span class="kw">return</span> tf.<span class="fn">nn</span>.<span class="fn">relu</span>(tf.<span class="fn">matmul</span>(<span class="var">x</span>, <span class="var">W</span>) <span class="op">+</span> <span class="var">b</span>)
+
+<span class="cm"># 1ère appel : TF trace et compile le graphe</span>
+<span class="cm"># Appels suivants : graphe réutilisé → RAPIDE</span>
+<span class="var">result</span> <span class="op">=</span> <span class="fn">forward</span>(<span class="var">x</span>, <span class="var">W</span>, <span class="var">b</span>)</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-title">💡 Quand utiliser @tf.function ?</div>
+      <p>Pendant le développement : laisse Eager pour débugger facilement. En production ou pour accélérer l'entraînement de longs runs : enveloppe la boucle d'entraînement dans <code>@tf.function</code>. Le gain est souvent de <strong>2× à 5×</strong> sur GPU.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ SECTION 4 : BACKPROPAGATION ══════════ -->
+<section id="backprop" class="fade-section">
+  <h2><span class="emoji">⚡</span> 3.4 — La Rétropropagation (Backpropagation)</h2>
+
+  <div class="glass-card">
+    <p>La backpropagation est l'algorithme qui permet au réseau d'<strong>apprendre</strong>. C'est une application élégante de la règle de la chaîne des dérivées, appliquée au graphe de calcul pour calculer efficacement le gradient de chaque paramètre.</p>
+
+    <h3>Vue d'ensemble — le cycle d'entraînement</h3>
+
+    <div class="backprop-flow">
+      <div class="bp-step">
+        <div class="bp-num">Étape 1</div>
+        <div class="bp-title">Forward Pass</div>
+        <div class="bp-desc">Les données traversent le réseau couche par couche. On calcule les activations à chaque niveau.</div>
+        <div class="bp-formula">ŷ = f(x ; θ)</div>
+      </div>
+      <div class="bp-step">
+        <div class="bp-num">Étape 2</div>
+        <div class="bp-title">Calcul de la Loss</div>
+        <div class="bp-desc">On mesure l'écart entre la prédiction et la vraie valeur via une fonction de coût.</div>
+        <div class="bp-formula">L = loss(ŷ, y)</div>
+      </div>
+      <div class="bp-step">
+        <div class="bp-num">Étape 3</div>
+        <div class="bp-title">Backward Pass</div>
+        <div class="bp-desc">On remonte le graphe en calculant le gradient de L par rapport à chaque paramètre.</div>
+        <div class="bp-formula">∂L/∂θ = ?</div>
+      </div>
+      <div class="bp-step">
+        <div class="bp-num">Étape 4</div>
+        <div class="bp-title">Mise à jour</div>
+        <div class="bp-desc">L'optimiseur ajuste les poids dans la direction opposée au gradient.</div>
+        <div class="bp-formula">θ ← θ - α·∇θL</div>
+      </div>
+    </div>
+
+    <h3>La Règle de la Chaîne — le moteur de la backprop</h3>
+    <p>Si <code>y = f(g(x))</code>, alors la dérivée de y par rapport à x est :</p>
+
+    <div class="formula-block">
+      <div class="formula-title">Règle de la chaîne (Chain Rule)</div>
+      <div class="formula-main">dy/dx = (dy/dg) × (dg/dx)</div>
+      <div class="formula-legend">
+        La dérivée d'une fonction composée = produit des dérivées de chaque couche.<br>
+        En deep learning : on "multiplie les gradients" en remontant couche par couche.
+      </div>
+    </div>
+
+    <p>En pratique, pour un réseau à 3 couches :</p>
+
+    <div class="formula-block">
+      <div class="formula-title">Gradient sur les poids de la couche 1</div>
+      <div class="formula-main" style="font-size:0.95rem;">∂L/∂W₁ = (∂L/∂a₃) · (∂a₃/∂a₂) · (∂a₂/∂a₁) · (∂a₁/∂W₁)</div>
+      <div class="formula-legend">
+        <span>a₁, a₂, a₃</span> = activations des couches 1, 2, 3<br>
+        <span>W₁</span> = poids de la couche 1<br>
+        Chaque facteur correspond à un nœud du graphe parcouru à rebours.
+      </div>
+    </div>
+
+    <h3>Le Forward Pass — formule de couche Dense</h3>
+    <p>À chaque couche Dense, le calcul est :</p>
+
+    <div class="formula-block">
+      <div class="formula-title">Sortie d'une couche — Forward</div>
+      <div class="formula-main">z = W · x + b &nbsp;&nbsp;→&nbsp;&nbsp; a = σ(z)</div>
+      <div class="formula-legend">
+        <span>x</span> = entrée de la couche [in_features]<br>
+        <span>W</span> = matrice de poids [out_features, in_features]<br>
+        <span>b</span> = vecteur de biais [out_features]<br>
+        <span>z</span> = pré-activation (linear combination)<br>
+        <span>a</span> = activation — sortie de la couche<br>
+        <span>σ</span> = fonction d'activation (ReLU, sigmoid, etc.)
+      </div>
+    </div>
+
+    <h3>Les Fonctions de Loss — mesurer l'erreur</h3>
+    <table class="algo-table">
+      <thead>
+        <tr>
+          <th>Loss</th>
+          <th>Formule</th>
+          <th>Quand l'utiliser</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label="Loss"><strong>MSE</strong><br><em>Mean Squared Error</em></td>
+          <td data-label="Formule"><code>(1/n) Σ (ŷᵢ - yᵢ)²</code></td>
+          <td data-label="Quand">Régression — prédire un nombre</td>
+        </tr>
+        <tr>
+          <td data-label="Loss"><strong>MAE</strong><br><em>Mean Absolute Error</em></td>
+          <td data-label="Formule"><code>(1/n) Σ |ŷᵢ - yᵢ|</code></td>
+          <td data-label="Quand">Régression robuste aux outliers</td>
+        </tr>
+        <tr>
+          <td data-label="Loss"><strong>Binary CE</strong><br><em>Cross-Entropy binaire</em></td>
+          <td data-label="Formule"><code>-[y·log(ŷ) + (1-y)·log(1-ŷ)]</code></td>
+          <td data-label="Quand">Classification binaire (oui/non)</td>
+        </tr>
+        <tr>
+          <td data-label="Loss"><strong>Categorical CE</strong><br><em>Cross-Entropy catégorielle</em></td>
+          <td data-label="Formule"><code>-Σ yᵢ·log(ŷᵢ)</code></td>
+          <td data-label="Quand">Classification multi-classes (N &gt; 2)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Implémenter manuellement — comprendre GradientTape</h3>
+
+    <div class="compare-grid">
+      <div class="compare-card js">
+        <div class="tag">TensorFlow.js</div>
+        <div class="code-block">
+          <div class="code-header">Gradient manuel avec tf.grad<span class="lang-tag js">JS</span></div>
+          <pre><code><span class="cm">// Calculer le gradient de f(x) = x²</span>
+<span class="kw">const</span> <span class="fn">f</span> <span class="op">=</span> <span class="var">x</span> <span class="kw">=></span> <span class="var">x</span>.<span class="fn">square</span>();
+<span class="kw">const</span> <span class="fn">df</span> <span class="op">=</span> tf.<span class="fn">grad</span>(<span class="fn">f</span>);  <span class="cm">// df/dx = 2x</span>
+
+<span class="kw">const</span> <span class="var">x</span> <span class="op">=</span> tf.<span class="fn">tensor1d</span>([<span class="num">3</span>]);
+<span class="fn">df</span>(<span class="var">x</span>).<span class="fn">print</span>();             <span class="cm">// [6] — car d(x²)/dx = 2x = 2×3</span>
+
+<span class="cm">// Gradient d'une loss MSE</span>
+<span class="kw">const</span> <span class="fn">mse</span> <span class="op">=</span> (<span class="var">pred</span>, <span class="var">label</span>) <span class="kw">=></span>
+  <span class="var">pred</span>.<span class="fn">sub</span>(<span class="var">label</span>).<span class="fn">square</span>().<span class="fn">mean</span>();
+
+<span class="kw">const</span> <span class="var">pred</span>  <span class="op">=</span> tf.<span class="fn">tensor1d</span>([<span class="num">0.8</span>, <span class="num">0.2</span>]);
+<span class="kw">const</span> <span class="var">label</span> <span class="op">=</span> tf.<span class="fn">tensor1d</span>([<span class="num">1.0</span>, <span class="num">0.0</span>]);
+
+<span class="kw">const</span> <span class="fn">dLoss</span> <span class="op">=</span> tf.<span class="fn">grad</span>(<span class="var">p</span> <span class="kw">=></span> <span class="fn">mse</span>(<span class="var">p</span>, <span class="var">label</span>));
+<span class="fn">dLoss</span>(<span class="var">pred</span>).<span class="fn">print</span>(); <span class="cm">// gradient par rapport aux preds</span></code></pre>
+        </div>
+      </div>
+      <div class="compare-card py">
+        <div class="tag">TensorFlow Python</div>
+        <div class="code-block">
+          <div class="code-header">Gradient manuel avec GradientTape<span class="lang-tag py">Python</span></div>
+          <pre><code><span class="kw">import</span> <span class="cls">tensorflow</span> <span class="kw">as</span> <span class="var">tf</span>
+
+<span class="cm"># GradientTape : enregistre les opérations</span>
+<span class="cm"># pour calculer les gradients ensuite</span>
+<span class="var">W</span> <span class="op">=</span> tf.<span class="cls">Variable</span>([[<span class="num">0.5</span>], [<span class="num">0.3</span>]])
+<span class="var">b</span> <span class="op">=</span> tf.<span class="cls">Variable</span>([<span class="num">0.1</span>])
+<span class="var">x</span> <span class="op">=</span> tf.<span class="fn">constant</span>([[<span class="num">1.</span>, <span class="num">2.</span>]])
+<span class="var">y</span> <span class="op">=</span> tf.<span class="fn">constant</span>([[<span class="num">1.</span>]])
+
+<span class="kw">with</span> tf.<span class="cls">GradientTape</span>() <span class="kw">as</span> <span class="var">tape</span>:
+  <span class="var">pred</span> <span class="op">=</span> tf.<span class="fn">matmul</span>(<span class="var">x</span>, <span class="var">W</span>) <span class="op">+</span> <span class="var">b</span>  <span class="cm"># forward</span>
+  <span class="var">loss</span> <span class="op">=</span> tf.<span class="fn">reduce_mean</span>(
+    (<span class="var">pred</span> <span class="op">-</span> <span class="var">y</span>)<span class="op">**</span><span class="num">2</span>              <span class="cm"># MSE</span>
+  )
+
+<span class="cm"># La tape "rejoue" le graphe à rebours</span>
+<span class="var">grads</span> <span class="op">=</span> <span class="var">tape</span>.<span class="fn">gradient</span>(<span class="var">loss</span>, [<span class="var">W</span>, <span class="var">b</span>])
+<span class="cm"># grads[0] = ∂loss/∂W</span>
+<span class="cm"># grads[1] = ∂loss/∂b</span>
+
+<span class="cm"># Appliquer les gradients manuellement</span>
+<span class="var">lr</span> <span class="op">=</span> <span class="num">0.01</span>
+<span class="var">W</span>.<span class="fn">assign_sub</span>(<span class="var">lr</span> <span class="op">*</span> <span class="var">grads</span>[<span class="num">0</span>])
+<span class="var">b</span>.<span class="fn">assign_sub</span>(<span class="var">lr</span> <span class="op">*</span> <span class="var">grads</span>[<span class="num">1</span>])</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box warning">
+      <div class="tip-title">⚠️ Vanishing &amp; Exploding Gradients</div>
+      <p>Dans un réseau profond, les gradients se <strong>multiplient</strong> couche par couche (règle de la chaîne). Si chaque gradient est &lt; 1, le produit tend vers 0 → <strong>vanishing gradient</strong> (les premières couches n'apprennent plus). Si chaque gradient &gt; 1, le produit explose → <strong>exploding gradient</strong>. Solutions : <strong>ReLU</strong> (atténue le vanishing), <strong>Batch Norm</strong>, <strong>gradient clipping</strong>, architectures Residual (ResNet).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ SECTION 5 : OPTIMISEURS ══════════ -->
+<section id="optimiseurs" class="fade-section">
+  <h2><span class="emoji">🎯</span> 3.5 — Les Optimiseurs</h2>
+
+  <div class="glass-card">
+    <p>Une fois le gradient calculé, l'optimiseur décide <strong>comment</strong> ajuster les poids. Ce n'est pas trivial : le gradient seul dit la direction, mais pas la taille du pas ni comment s'adapter au terrain.</p>
+
+    <h3>Le problème — la surface de loss</h3>
+    <p>Imagine la loss function comme un relief montagneux. Le gradient pointe vers la pente montante. On veut descendre vers la vallée (le minimum). Le problème : la surface est parsemée de <strong>minima locaux</strong>, de <strong>plateaux</strong> et de <strong>selles</strong>.</p>
+
+    <div class="formula-block">
+      <div class="formula-title">Mise à jour des poids — formule générale</div>
+      <div class="formula-main">θₜ₊₁ = θₜ - α · update(∇θL)</div>
+      <div class="formula-legend">
+        <span>θₜ</span> = poids à l'itération t<br>
+        <span>α</span> = learning rate (taux d'apprentissage)<br>
+        <span>∇θL</span> = gradient de la loss par rapport aux poids<br>
+        <span>update()</span> = transformation du gradient selon l'optimiseur
+      </div>
+    </div>
+
+    <h3>Les 4 grands optimiseurs</h3>
+
+    <div class="optim-grid">
+      <div class="optim-card sgd">
+        <div class="optim-name">SGD</div>
+        <div class="optim-badge">Stochastic Gradient Descent</div>
+        <div class="optim-desc">Le plus simple. Suit le gradient brut, éventuellement avec momentum pour accélérer dans les directions persistantes.</div>
+        <div class="optim-formula">
+          θₜ₊₁ = θₜ - α · ∇L<br>
+          <span style="color:var(--syn-cm);">// Avec momentum :</span><br>
+          vₜ₊₁ = β·vₜ + (1-β)·∇L<br>
+          θₜ₊₁ = θₜ - α·vₜ₊₁
+        </div>
+        <div class="optim-when">→ Bons résultats finaux, mais convergence lente. Utile pour fine-tuning.</div>
+      </div>
+
+      <div class="optim-card adam">
+        <div class="optim-name">Adam</div>
+        <div class="optim-badge">Adaptive Moment Estimation</div>
+        <div class="optim-desc">Combine momentum (1er moment) et adaptation du learning rate par paramètre (2ème moment). Choix par défaut dans 90% des cas.</div>
+        <div class="optim-formula">
+          m = β₁·m + (1-β₁)·g<br>
+          v = β₂·v + (1-β₂)·g²<br>
+          θ = θ - α · m̂ / (√v̂ + ε)
+        </div>
+        <div class="optim-when">→ Idéal pour débuter. β₁=0.9, β₂=0.999, α=0.001.</div>
+      </div>
+
+      <div class="optim-card rms">
+        <div class="optim-name">RMSprop</div>
+        <div class="optim-badge">Root Mean Square Propagation</div>
+        <div class="optim-desc">Adapte le learning rate par paramètre en divisant par la racine de la moyenne mobile des gradients au carré. Précurseur d'Adam.</div>
+        <div class="optim-formula">
+          v = ρ·v + (1-ρ)·g²<br>
+          θ = θ - α · g / (√v + ε)
+        </div>
+        <div class="optim-when">→ Robuste pour certaines séquences et problèmes non stationnaires.</div>
+      </div>
+
+      <div class="optim-card adamw">
+        <div class="optim-name">AdamW</div>
+        <div class="optim-badge">Adam + Weight Decay découplé</div>
+        <div class="optim-desc">Correction d'Adam : le weight decay (régularisation L2) est appliqué directement aux poids, pas aux gradients. Meilleure généralisation.</div>
+        <div class="optim-formula">
+          <span style="color:var(--syn-cm);">// Adam classique :</span><br>
+          θ ← Adam(θ) - α·λ·θ<br>
+          <span style="color:var(--syn-cm);">// AdamW découplé :</span><br>
+          θ ← Adam(θ) ; θ ← θ·(1-λ)
+        </div>
+        <div class="optim-when">→ Recommandé pour les Transformers et gros modèles.</div>
+      </div>
+    </div>
+
+    <h3>Le Learning Rate — le paramètre le plus important</h3>
+    <p>Le learning rate <code>α</code> contrôle la taille du pas à chaque mise à jour. C'est souvent le paramètre qui a le plus d'impact sur les résultats :</p>
+
+    <div class="compare-grid">
+      <div class="compare-card js">
+        <div class="tag" style="background:rgba(255,0,229,0.1); border-color:rgba(255,0,229,0.2); color:var(--magenta);">α trop grand</div>
+        <p>Le modèle "saute" par-dessus les minima. La loss <strong>diverge</strong> ou oscille sans converger. Symptôme : loss qui monte, NaN dans les poids.</p>
+      </div>
+      <div class="compare-card py">
+        <div class="tag" style="background:rgba(0,240,255,0.1); border-color:rgba(0,240,255,0.2); color:var(--cyan);">α trop petit</div>
+        <p>La convergence est correcte mais <strong>très lente</strong>. Risque de rester bloqué dans un mauvais minimum local. L'entraînement prend des heures sans raison.</p>
+      </div>
+    </div>
+
+    <div class="formula-block">
+      <div class="formula-title">Learning Rate Scheduling — réduire α au fil du temps</div>
+      <div class="formula-main" style="font-size:0.9rem;">αₜ = α₀ · decay_rate ^ (t / decay_steps)</div>
+      <div class="formula-legend">
+        <span>α₀</span> = learning rate initial (ex: 0.001)<br>
+        <span>t</span> = itération courante<br>
+        <span>decay_rate</span> = facteur de réduction (ex: 0.96)<br>
+        Un scheduler réduit α quand la loss stagne → affine la convergence.
+      </div>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-card js">
+        <div class="tag">TensorFlow.js</div>
+        <div class="code-block">
+          <div class="code-header">Configurer un optimiseur<span class="lang-tag js">JS</span></div>
+          <pre><code><span class="cm">// Adam avec learning rate personnalisé</span>
+<span class="kw">const</span> <span class="var">opt</span> <span class="op">=</span> tf.train.<span class="fn">adam</span>(
+  <span class="num">0.001</span>,  <span class="cm">// learningRate</span>
+  <span class="num">0.9</span>,    <span class="cm">// beta1 (momentum)</span>
+  <span class="num">0.999</span>, <span class="cm">// beta2 (RMS)</span>
+  <span class="num">1e-7</span>   <span class="cm">// epsilon</span>
+);
+
+<span class="cm">// SGD avec momentum</span>
+<span class="kw">const</span> <span class="var">sgd</span> <span class="op">=</span> tf.train.<span class="fn">momentum</span>(<span class="num">0.01</span>, <span class="num">0.9</span>);
+
+<span class="cm">// Compiler le modèle avec l'optimiseur</span>
+<span class="var">model</span>.<span class="fn">compile</span>({
+  <span class="var">optimizer</span>: <span class="var">opt</span>,
+  <span class="var">loss</span>: <span class="str">'meanSquaredError'</span>
+});
+
+<span class="cm">// Utiliser directement l'optimiseur</span>
+<span class="kw">const</span> <span class="fn">lossFn</span> <span class="op">=</span> () <span class="kw">=></span>
+  tf.<span class="fn">tidy</span>(() <span class="kw">=></span> <span class="fn">mse</span>(<span class="var">model</span>.<span class="fn">predict</span>(<span class="var">X</span>), <span class="var">Y</span>));
+
+<span class="var">opt</span>.<span class="fn">minimize</span>(<span class="fn">lossFn</span>);  <span class="cm">// calcule et applique</span></code></pre>
+        </div>
+      </div>
+      <div class="compare-card py">
+        <div class="tag">TensorFlow Python</div>
+        <div class="code-block">
+          <div class="code-header">Configurer un optimiseur + scheduler<span class="lang-tag py">Python</span></div>
+          <pre><code><span class="kw">import</span> <span class="cls">tensorflow</span> <span class="kw">as</span> <span class="var">tf</span>
+
+<span class="cm"># Adam standard</span>
+<span class="var">opt</span> <span class="op">=</span> tf.keras.optimizers.<span class="fn">Adam</span>(
+  learning_rate<span class="op">=</span><span class="num">0.001</span>,
+  beta_1<span class="op">=</span><span class="num">0.9</span>,
+  beta_2<span class="op">=</span><span class="num">0.999</span>,
+  epsilon<span class="op">=</span><span class="num">1e-7</span>
+)
+
+<span class="cm"># AdamW (meilleure généralisation)</span>
+<span class="var">opt_w</span> <span class="op">=</span> tf.keras.optimizers.<span class="fn">AdamW</span>(
+  learning_rate<span class="op">=</span><span class="num">0.001</span>,
+  weight_decay<span class="op">=</span><span class="num">0.01</span>
+)
+
+<span class="cm"># Learning rate scheduling automatique</span>
+<span class="var">lr_schedule</span> <span class="op">=</span> tf.keras.optimizers.schedules.<span class="fn">ExponentialDecay</span>(
+  initial_learning_rate<span class="op">=</span><span class="num">0.001</span>,
+  decay_steps<span class="op">=</span><span class="num">1000</span>,
+  decay_rate<span class="op">=</span><span class="num">0.96</span>
+)
+<span class="var">opt_sched</span> <span class="op">=</span> tf.keras.optimizers.<span class="fn">Adam</span>(<span class="var">lr_schedule</span>)
+
+<span class="cm"># Callback qui réduit lr si la loss stagne</span>
+<span class="var">plateau</span> <span class="op">=</span> tf.keras.callbacks.<span class="fn">ReduceLROnPlateau</span>(
+  monitor<span class="op">=</span><span class="str">'val_loss'</span>, factor<span class="op">=</span><span class="num">0.5</span>, patience<span class="op">=</span><span class="num">3</span>
+)</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-title">⚙️ Tableau de décision — quel optimiseur choisir ?</div>
+      <p>
+        <strong>Débuter / usage général</strong> → Adam (lr=0.001)<br>
+        <strong>Gros modèle / Transformer</strong> → AdamW (weight_decay=0.01)<br>
+        <strong>Fine-tuning d'un modèle pré-entraîné</strong> → SGD + momentum (lr très petit : 1e-4)<br>
+        <strong>Si Adam diverge</strong> → réduire le lr (0.0001) ou passer à RMSprop<br>
+        <strong>Toujours</strong> → ajouter un scheduler ou ReduceLROnPlateau
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ SECTION 6 : RÉCAP ══════════ -->
+<section id="recap" class="fade-section">
+  <h2><span class="emoji">🗂️</span> Récapitulatif — Les Notations Clés</h2>
+
+  <div class="glass-card">
+    <p>Un lexique rapide des symboles mathématiques que tu rencontreras dans la littérature du deep learning :</p>
+
+    <div class="notation-grid">
+      <div class="notation-item">
+        <div class="notation-sym">x</div>
+        <div class="notation-def">Vecteur d'entrée (features)</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">y</div>
+        <div class="notation-def">Label / valeur cible réelle</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">ŷ</div>
+        <div class="notation-def">Prédiction du modèle</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">W</div>
+        <div class="notation-def">Matrice de poids</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">b</div>
+        <div class="notation-def">Vecteur de biais</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">θ</div>
+        <div class="notation-def">Tous les paramètres (W + b)</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">L</div>
+        <div class="notation-def">Loss (valeur de la fonction de coût)</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">∇L</div>
+        <div class="notation-def">Gradient de la loss</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">α</div>
+        <div class="notation-def">Learning rate (taux d'apprentissage)</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">σ</div>
+        <div class="notation-def">Fonction d'activation (sigmoid, ReLU…)</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">B</div>
+        <div class="notation-def">Batch size (taille du paquet)</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">N</div>
+        <div class="notation-def">Nombre total d'exemples</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">t</div>
+        <div class="notation-def">Itération / timestep courant</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">β</div>
+        <div class="notation-def">Facteur de décroissance (momentum)</div>
+      </div>
+      <div class="notation-item">
+        <div class="notation-sym">ε</div>
+        <div class="notation-def">Epsilon — stabilité numérique (1e-7)</div>
+      </div>
+    </div>
+
+    <h3>Le cycle complet en une boucle</h3>
+
+    <div class="code-block">
+      <div class="code-header">Boucle d'entraînement complète — Python<span class="lang-tag py">Python</span></div>
+      <pre><code><span class="kw">import</span> <span class="cls">tensorflow</span> <span class="kw">as</span> <span class="var">tf</span>
+
+<span class="cm"># Paramètres du modèle (Variables = poids apprenables)</span>
+<span class="var">W</span> <span class="op">=</span> tf.<span class="cls">Variable</span>(tf.<span class="fn">random.normal</span>([<span class="num">2</span>, <span class="num">1</span>]))
+<span class="var">b</span> <span class="op">=</span> tf.<span class="cls">Variable</span>(tf.<span class="fn">zeros</span>([<span class="num">1</span>]))
+<span class="var">opt</span> <span class="op">=</span> tf.keras.optimizers.<span class="fn">Adam</span>(<span class="num">0.01</span>)
+
+<span class="kw">for</span> <span class="var">epoch</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">100</span>):
+  <span class="cm"># ── ÉTAPE 1 & 2 : Forward + Loss ────────────────</span>
+  <span class="kw">with</span> tf.<span class="cls">GradientTape</span>() <span class="kw">as</span> <span class="var">tape</span>:
+    <span class="var">pred</span> <span class="op">=</span> tf.<span class="fn">matmul</span>(<span class="var">X_batch</span>, <span class="var">W</span>) <span class="op">+</span> <span class="var">b</span>  <span class="cm"># forward</span>
+    <span class="var">loss</span> <span class="op">=</span> tf.<span class="fn">reduce_mean</span>((<span class="var">pred</span> <span class="op">-</span> <span class="var">Y_batch</span>)<span class="op">**</span><span class="num">2</span>)  <span class="cm"># MSE</span>
+
+  <span class="cm"># ── ÉTAPE 3 : Backward (calcul des gradients) ───</span>
+  <span class="var">grads</span> <span class="op">=</span> <span class="var">tape</span>.<span class="fn">gradient</span>(<span class="var">loss</span>, [<span class="var">W</span>, <span class="var">b</span>])
+  <span class="cm"># grads = [∂L/∂W, ∂L/∂b]</span>
+
+  <span class="cm"># ── ÉTAPE 4 : Mise à jour (optimiseur) ──────────</span>
+  <span class="var">opt</span>.<span class="fn">apply_gradients</span>(<span class="fn">zip</span>(<span class="var">grads</span>, [<span class="var">W</span>, <span class="var">b</span>]))
+  <span class="cm"># Adam transforme les grads avant d'appliquer</span>
+  <span class="cm"># θ ← θ - α · Adam(∇L)</span>
+
+  <span class="kw">if</span> <span class="var">epoch</span> <span class="op">%</span> <span class="num">10</span> <span class="op">==</span> <span class="num">0</span>:
+    <span class="fn">print</span>(<span class="str">f"Epoch {epoch}: loss = {loss.numpy():.4f}"</span>)</code></pre>
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-title">🎯 Les 4 lois à ne jamais oublier</div>
+      <p>
+        <strong>1. Normalise toujours tes données</strong> avant de les passer au modèle.<br>
+        <strong>2. Split avant normalisation</strong> — les stats du test ne doivent pas contaminer le train.<br>
+        <strong>3. Choisis la bonne loss</strong> selon ton problème (MSE régression, CE classification).<br>
+        <strong>4. Surveille val_loss, pas train_loss</strong> — la val_loss est le vrai indicateur de performance.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FOOTER ══════════ -->
+<footer>
+  <p>Cours rédigé pour <span>JLQDeveloppement</span> — Mathématiques du Deep Learning — Tenseurs, Backprop &amp; Optimiseurs</p>
+</footer>
+
+</div>
+
+<script>
+// ── THEME TOGGLE ──
+const themeToggle = document.getElementById('themeToggle');
+const html = document.documentElement;
+if (!html.getAttribute('data-theme')) html.setAttribute('data-theme', 'dark');
+themeToggle.addEventListener('click', () => {
+  const next = (html.getAttribute('data-theme') || 'dark') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+});
+
+// ── HAMBURGER MENU ──
+const navToggle = document.querySelector('.nav-toggle');
+const navMenu = document.getElementById('nav-menu');
+navToggle.addEventListener('click', () => {
+  navToggle.classList.toggle('active');
+  navMenu.classList.toggle('open');
+  navToggle.setAttribute('aria-expanded', navMenu.classList.contains('open'));
+});
+navMenu.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', () => {
+    navToggle.classList.remove('active');
+    navMenu.classList.remove('open');
+    navToggle.setAttribute('aria-expanded', 'false');
+  });
+});
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('nav') && navMenu.classList.contains('open')) {
+    navToggle.classList.remove('active');
+    navMenu.classList.remove('open');
+    navToggle.setAttribute('aria-expanded', 'false');
+  }
+});
+
+// ── SCROLL FADE-IN ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-section').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
